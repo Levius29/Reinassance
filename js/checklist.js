@@ -1,4 +1,4 @@
-import { DAY_TYPES, SUPPLEMENT_BLOCKS, getDayTypeForDate, getProtocolWeek } from "./protocol.js";
+import { DAY_TYPES, SUPPLEMENT_BLOCKS, getDayTypeForDate, getProtocolWeek } from "./protocol.js?v=18";
 
 export function getChecklistItemsForDayType(dayType) {
   const training = DAY_TYPES[dayType]?.training ?? DAY_TYPES.rest.training;

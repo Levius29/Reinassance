@@ -45,9 +45,7 @@ body::before {
   content: "";
   position: fixed; inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--day-accent) 14%, transparent), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in srgb, var(--day-accent) 6%, transparent), transparent 70%);
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--day-accent) 14%, transparent), transparent 60%);
   z-index: 0;
   transition: background 400ms ease;
 }
@@ -63,9 +61,10 @@ button { cursor: pointer; background: transparent; border: 0; color: inherit; }
 .app-shell {
   position: relative;
   z-index: 1;
-  height: 100svh;
+  height: 100dvh;
+  min-height: 100svh;
   overflow: hidden;
-  padding: calc(10px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  padding: calc(10px + env(safe-area-inset-top)) 14px 0;
   display: flex;
   flex-direction: column;
 }
@@ -82,6 +81,7 @@ main {
 }
 
 .view {
+  position: relative;
   height: 100%;
   min-height: 0;
   display: grid;
@@ -94,6 +94,7 @@ main {
   flex-direction: column;
   flex: 1 1 0;
   height: auto;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
 /* --- COCKPIT HERO --- */
@@ -478,6 +479,40 @@ main {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--day-accent) 22%, transparent);
 }
 
+.macro-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.macro-box.warn {
+  border-color: var(--border-soft);
+}
+.macro-box strong {
+  color: var(--text-dim);
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.macro-box span {
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.macro-pill {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.macro-pill.ok { border-color: color-mix(in srgb, var(--good) 55%, var(--border)); color: var(--good); }
+.macro-pill.warn { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); color: var(--warn); }
+
 /* --- HABITS --- */
 .habit-grid {
   display: grid;
@@ -509,16 +544,26 @@ main {
 
 /* --- PANEL ROW --- */
 .panel-row {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  z-index: 20;
+  width: min(492px, calc(100vw - 28px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding-top: 2px;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  background: var(--ink);
+  transform: translateX(-50%);
 }
 .panel-button {
-  min-height: 44px;
+  min-height: 48px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(16px);
   font-weight: 700;
   font-size: 13px;
   letter-spacing: .04em;
@@ -526,6 +571,21 @@ main {
   transition: transform 80ms ease, border-color 200ms ease, color 200ms ease;
 }
 .panel-button:active { transform: scale(.96); border-color: var(--day-accent); color: var(--day-accent); }
+
+.alt-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 4px;
+}
+.alt-macros span {
+  border: 1px solid color-mix(in srgb, var(--good) 45%, var(--border));
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--good);
+}
 
 /* --- BUTTONS GENERIC --- */
 .button, .icon-button {

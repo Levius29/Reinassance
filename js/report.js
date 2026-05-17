@@ -1,4 +1,4 @@
-import { MILESTONES } from "./protocol.js";
+import { MILESTONES } from "./protocol.js?v=18";
 
 function average(values) {
   const nums = values.map(Number).filter(Number.isFinite);

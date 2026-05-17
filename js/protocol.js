@@ -57,7 +57,28 @@ export const SUPPLEMENT_BLOCKS = [
   },
 ];
 
-export const DIET_PLAN = {
+const TARGET_MEAL_MACROS = Object.freeze([
+  Object.freeze({ kcal: 700, protein: 60, fat: 18, carbs: 75 }),
+  Object.freeze({ kcal: 700, protein: 60, fat: 18, carbs: 75 }),
+  Object.freeze({ kcal: 700, protein: 60, fat: 18, carbs: 75 }),
+]);
+
+function withMacroTargets(plan) {
+  return Object.fromEntries(
+    Object.entries(plan).map(([day, data]) => [
+      day,
+      {
+        ...data,
+        meals: data.meals.map((meal) => ({
+          ...meal,
+          macros: TARGET_MEAL_MACROS.slice(0, meal.alternatives.length),
+        })),
+      },
+    ]),
+  );
+}
+
+export const DIET_PLAN = withMacroTargets({
   1: {
     label: "Lunedì",
     meals: [
@@ -198,7 +219,7 @@ export const DIET_PLAN = {
       ]},
     ],
   },
-};
+});
 
 export const DAY_TYPES = {
   push: {

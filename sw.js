@@ -1,8 +1,9 @@
-const CACHE = "protocol-v13";
+const CACHE = "protocol-v19";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./assets/icons/app-icon.svg",
   "./css/style.css",
   "./js/app.js",
   "./js/db.js",
