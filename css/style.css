@@ -66,14 +66,17 @@ button { cursor: pointer; background: transparent; border: 0; color: inherit; }
   height: 100svh;
   overflow: hidden;
   padding: calc(10px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-  height: 100%;
+  flex: 1 1 0;
   min-height: 0;
   margin: 0 auto;
   max-width: 520px;
   overflow: hidden;
+  width: 100%;
 }
 
 .view {
@@ -87,6 +90,8 @@ main {
 #view-oggi {
   display: flex;
   flex-direction: column;
+  flex: 1 1 0;
+  height: auto;
 }
 
 /* --- COCKPIT HERO --- */
