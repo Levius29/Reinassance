@@ -46,20 +46,150 @@ export const SUPPLEMENT_BLOCKS = [
   },
 ];
 
-const DEFAULT_DAILY_MEALS = [
-  { id: "meal_breakfast", label: "Colazione", time: "08:00", items: ["Da compilare"] },
-  { id: "meal_lunch", label: "Pranzo", time: "13:00", items: ["Da compilare"] },
-  { id: "meal_dinner", label: "Cena", time: "20:00", items: ["Da compilare"] },
-];
-
 export const DIET_PLAN = {
-  1: { label: "Lunedì", meals: DEFAULT_DAILY_MEALS },
-  2: { label: "Martedì", meals: DEFAULT_DAILY_MEALS },
-  3: { label: "Mercoledì", meals: DEFAULT_DAILY_MEALS },
-  4: { label: "Giovedì", meals: DEFAULT_DAILY_MEALS },
-  5: { label: "Venerdì", meals: DEFAULT_DAILY_MEALS },
-  6: { label: "Sabato", meals: DEFAULT_DAILY_MEALS },
-  0: { label: "Domenica", meals: DEFAULT_DAILY_MEALS },
+  1: {
+    label: "Lunedì",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Avena 80g cotta in acqua",
+        "4 albumi + 1 uovo intero strapazzati",
+        "Frutti rossi 100g",
+        "Caffè nero",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Pollo 200g grigliato",
+        "Riso basmati 100g (peso secco)",
+        "Verdure miste cotte + 1 cucchiaio olio EVO",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Salmone 180g al forno",
+        "Patate dolci 200g",
+        "Insalata mista + limone",
+      ]},
+    ],
+  },
+  2: {
+    label: "Martedì",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Pane integrale 80g",
+        "Ricotta 150g",
+        "Miele 1 cucchiaino",
+        "Frutta fresca 1 porzione",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Pasta integrale 100g",
+        "Tonno al naturale 150g",
+        "Pomodorini + olio EVO",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Spuntino pre-MT 16:30: banana + mandorle 30g",
+        "Post-allenamento: pollo 180g + quinoa 80g + verdure cotte",
+      ]},
+    ],
+  },
+  3: {
+    label: "Mercoledì",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Avena 80g cotta",
+        "Whey 30g",
+        "Banana",
+        "Burro arachidi 15g",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Manzo magro 200g",
+        "Riso 100g (peso secco)",
+        "Spinaci saltati + olio EVO",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Merluzzo 200g",
+        "Patate 200g",
+        "Broccoli al vapore",
+      ]},
+    ],
+  },
+  4: {
+    label: "Giovedì",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Yogurt greco 0% 250g",
+        "Granola 50g",
+        "Frutta fresca",
+        "Noci 20g",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Insalata mista grande",
+        "3 uova sode",
+        "Pane integrale 60g",
+        "Olio EVO + aceto",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Zuppa legumi 300g (lenticchie/ceci/fagioli)",
+        "Pane integrale 60g",
+        "Formaggio fresco 60g",
+      ]},
+    ],
+  },
+  5: {
+    label: "Venerdì",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Pancake avena (80g avena + 3 albumi + 1 uovo)",
+        "Frutti rossi 100g",
+        "Sciroppo acero 1 cucchiaino",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Pollo 200g",
+        "Patate 250g al forno",
+        "Verdure grigliate + olio EVO",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Tacchino 200g",
+        "Riso 100g (peso secco)",
+        "Zucchine saltate",
+      ]},
+    ],
+  },
+  6: {
+    label: "Sabato",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
+        "Toast integrale 2 fette",
+        "2 uova alla coque",
+        "Avocado mezzo",
+        "Frutta fresca",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
+        "Pasta 100g",
+        "Ragù magro di manzo",
+        "Parmigiano 15g",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Spuntino pre-MT 16:30: banana + mandorle 30g",
+        "Pesce azzurro 200g (sgombro/alici)",
+        "Verdure + olio EVO",
+      ]},
+    ],
+  },
+  0: {
+    label: "Domenica",
+    meals: [
+      { id: "meal_breakfast", label: "Colazione", time: "09:00", items: [
+        "Brunch libero: uova benedict / pancake / scelta",
+        "Caffè + frutta",
+      ]},
+      { id: "meal_lunch", label: "Pranzo", time: "13:30", items: [
+        "Pasto libero con focus omega-3",
+        "Opzioni: salmone, sgombro, sardine, o piatto di legumi",
+      ]},
+      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
+        "Insalatona ricca proteica",
+        "Petto pollo o tonno o uova",
+        "Semi misti + olio EVO",
+      ]},
+    ],
+  },
 };
 
 export const DAY_TYPES = {
@@ -144,35 +274,10 @@ export const MILESTONES = {
   1: { type: "info", text: "Fase 1 — Ricostruzione. Forza 70-75%, reps 6-8." },
   4: { type: "info", text: "Settimana di scarico — forza −30%." },
   5: { type: "info", text: "Fase 2 — Carichi pieni (4-6 reps)." },
-  6: { type: "exam", text: "Checkpoint esami: dosa D3, B12, folati.", labsToBook: ["vitamin_d", "b12", "folate"] },
+  6: { type: "exam", text: "Checkpoint esami: dosa D3, B12, folati." },
   8: { type: "info", text: "Settimana di scarico (2°)." },
-  12: {
-    type: "exam",
-    text: "Checkpoint maggiore: panel completo.",
-    labsToBook: ["testosterone_total", "testosterone_free", "shbg", "lh", "fsh", "estradiol", "homa_ir", "hba1c", "alt", "ferritin", "vitamin_d"],
-  },
+  12: { type: "exam", text: "Checkpoint maggiore: panel completo." },
 };
-
-export const LAB_FIELDS = [
-  { key: "testosterone_total", label: "Testosterone totale", unit: "ng/dL", refLow: 300, refHigh: 900, betterDirection: "range" },
-  { key: "testosterone_free", label: "Testosterone libero", unit: "pg/mL", refLow: 15, refHigh: 50, betterDirection: "range" },
-  { key: "shbg", label: "SHBG", unit: "nmol/L", refLow: 18, refHigh: 54, betterDirection: "range" },
-  { key: "lh", label: "LH", unit: "mIU/mL", refLow: 1.7, refHigh: 8.6, betterDirection: "range" },
-  { key: "fsh", label: "FSH", unit: "mIU/mL", refLow: 1.5, refHigh: 12.4, betterDirection: "range" },
-  { key: "estradiol", label: "Estradiolo", unit: "pg/mL", refLow: 11, refHigh: 44, betterDirection: "range" },
-  { key: "inhibin_b", label: "Inibina B", unit: "pg/mL", refLow: null, refHigh: null, betterDirection: "up" },
-  { key: "amh", label: "AMH", unit: "ng/mL", refLow: null, refHigh: null, betterDirection: "range" },
-  { key: "ferritin", label: "Ferritina", unit: "ng/mL", refLow: 30, refHigh: 400, betterDirection: "range" },
-  { key: "homa_ir", label: "HOMA-IR", unit: "", refLow: null, refHigh: 2.0, betterDirection: "down" },
-  { key: "hba1c", label: "HbA1c", unit: "%", refLow: null, refHigh: 5.6, betterDirection: "down" },
-  { key: "alt", label: "ALT", unit: "U/L", refLow: null, refHigh: 45, betterDirection: "down" },
-  { key: "ast", label: "AST", unit: "U/L", refLow: null, refHigh: 40, betterDirection: "down" },
-  { key: "vitamin_d", label: "Vitamina D", unit: "ng/mL", refLow: 30, refHigh: 80, betterDirection: "range" },
-  { key: "b12", label: "Vitamina B12", unit: "pg/mL", refLow: 300, refHigh: 900, betterDirection: "range" },
-  { key: "folate", label: "Folati", unit: "ng/mL", refLow: 4, refHigh: 20, betterDirection: "range" },
-  { key: "homocysteine", label: "Omocisteina", unit: "µmol/L", refLow: null, refHigh: 15, betterDirection: "down" },
-  { key: "zinc", label: "Zinco", unit: "µg/dL", refLow: 70, refHigh: 120, betterDirection: "range" },
-];
 
 export const MANIFESTO = `Il muscolo non se n'è andato: è in sciopero. Il testosterone non è perso, è soppresso
 e reversibile. I sintomi — sonno, energia, erezioni — migliorano prima che cambi il
