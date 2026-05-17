@@ -299,6 +299,11 @@ main {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 0 2px;
+  display: flex;
+  flex-direction: column;
+}
+.slide > .card {
+  min-height: 100%;
 }
 .slide::-webkit-scrollbar { display: none; }
 
