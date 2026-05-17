@@ -549,9 +549,15 @@ main {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 8px 0 env(safe-area-inset-bottom);
+  padding: 8px 0 0;
   background: var(--ink);
   transform: translateX(-50%);
+}
+/* Riempie il safe area sotto i bottoni (home indicator iPhone PWA) */
+.panel-row::after {
+  content: '';
+  grid-column: 1 / -1;
+  height: env(safe-area-inset-bottom, 0px);
 }
 .panel-button {
   min-height: 48px;
