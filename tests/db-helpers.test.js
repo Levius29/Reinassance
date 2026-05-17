@@ -13,7 +13,7 @@ test("creates empty backup snapshot with all stores", () => {
   assert.equal(snapshot.version, BACKUP_VERSION);
   assert.deepEqual(snapshot.days, []);
   assert.deepEqual(snapshot.weeks, []);
-  assert.deepEqual(snapshot.labs, []);
+  assert.deepEqual(snapshot.diet_overrides, []);
   assert.deepEqual(snapshot.settings, []);
   assert.deepEqual(snapshot.meta, []);
 });
@@ -25,7 +25,7 @@ test("normalizes missing optional stores", () => {
   });
   assert.equal(snapshot.days.length, 1);
   assert.deepEqual(snapshot.weeks, []);
-  assert.deepEqual(snapshot.labs, []);
+  assert.deepEqual(snapshot.diet_overrides, []);
 });
 
 test("validates backup payload shape", () => {

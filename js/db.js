@@ -1,12 +1,12 @@
 export const DB_NAME = "protocol_db";
-export const DB_VERSION = 1;
-export const BACKUP_VERSION = 1;
-export const MIRROR_KEY = "protocol_backup_v1";
+export const DB_VERSION = 2;
+export const BACKUP_VERSION = 2;
+export const MIRROR_KEY = "protocol_backup_v2";
 
 const STORE_DEFS = {
   days: { keyPath: "date", indexes: [{ name: "weekNumber", keyPath: "weekNumber" }] },
   weeks: { keyPath: "weekNumber", indexes: [] },
-  labs: { keyPath: "id", autoIncrement: true, indexes: [{ name: "date", keyPath: "date" }] },
+  diet_overrides: { keyPath: "id", indexes: [{ name: "by-date", keyPath: "date" }] },
   settings: { keyPath: "key", indexes: [] },
   meta: { keyPath: "key", indexes: [] },
 };
@@ -21,7 +21,7 @@ export function createEmptySnapshot() {
     exportedAt: new Date(0).toISOString(),
     days: [],
     weeks: [],
-    labs: [],
+    diet_overrides: [],
     settings: [],
     meta: [],
   };
@@ -33,7 +33,7 @@ export function normalizeSnapshot(payload) {
     exportedAt: payload?.exportedAt ?? new Date().toISOString(),
     days: Array.isArray(payload?.days) ? payload.days : [],
     weeks: Array.isArray(payload?.weeks) ? payload.weeks : [],
-    labs: Array.isArray(payload?.labs) ? payload.labs : [],
+    diet_overrides: Array.isArray(payload?.diet_overrides) ? payload.diet_overrides : [],
     settings: Array.isArray(payload?.settings) ? payload.settings : [],
     meta: Array.isArray(payload?.meta) ? payload.meta : [],
   };
@@ -41,7 +41,9 @@ export function normalizeSnapshot(payload) {
 
 export function validateBackupPayload(payload) {
   if (!payload || typeof payload !== "object") return { ok: false, error: "Backup non valido." };
-  if (payload.version !== BACKUP_VERSION) return { ok: false, error: "Versione backup non supportata." };
+  if (payload.version !== BACKUP_VERSION && payload.version !== 1) {
+    return { ok: false, error: "Versione backup non supportata." };
+  }
   for (const storeName of STORE_NAMES) {
     if (payload[storeName] !== undefined && !Array.isArray(payload[storeName])) {
       return { ok: false, error: `Store ${storeName} non valido.` };
@@ -75,6 +77,7 @@ export function openDB() {
     request.onerror = () => reject(request.error);
     request.onupgradeneeded = () => {
       const db = request.result;
+      if (db.objectStoreNames.contains("labs")) db.deleteObjectStore("labs");
       for (const [name, def] of Object.entries(STORE_DEFS)) {
         const store = db.objectStoreNames.contains(name)
           ? request.transaction.objectStore(name)
@@ -177,12 +180,14 @@ export async function isDatabaseEmpty() {
 
 export function readMirror() {
   if (typeof localStorage === "undefined") return null;
-  const raw = localStorage.getItem(MIRROR_KEY);
+  const legacyKey = "protocol_backup_v1";
+  const raw = localStorage.getItem(MIRROR_KEY) ?? localStorage.getItem(legacyKey);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
     const validation = validateBackupPayload(parsed);
-    return validation.ok ? normalizeSnapshot(parsed) : null;
+    if (!validation.ok) return null;
+    return normalizeSnapshot(parsed);
   } catch {
     return null;
   }
