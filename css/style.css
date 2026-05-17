@@ -661,6 +661,72 @@ main {
   line-height: 1.55;
 }
 
+/* --- MEAL PICKER --- */
+.alt-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.alt-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  transition: transform 80ms ease, border-color 200ms ease, background 200ms ease;
+}
+.alt-card:active { transform: scale(.98); }
+.alt-card.selected {
+  border-color: color-mix(in srgb, var(--day-accent) 65%, var(--border));
+  background: color-mix(in srgb, var(--day-accent) 10%, var(--surface));
+}
+.alt-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.alt-badge {
+  width: 24px; height: 24px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--day-accent) 20%, var(--surface));
+  color: var(--day-accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.alt-tag {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--day-accent);
+}
+.alt-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.alt-items li {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+  padding-left: 12px;
+  position: relative;
+}
+.alt-items li::before {
+  content: "·";
+  position: absolute;
+  left: 2px;
+  color: var(--text-mute);
+}
+
 /* --- TOAST --- */
 .toast-host {
   position: fixed;

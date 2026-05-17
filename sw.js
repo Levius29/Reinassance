@@ -1,4 +1,4 @@
-const CACHE = "protocol-v11";
+const CACHE = "protocol-v12";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
@@ -9,7 +9,7 @@ const LOCAL_SHELL = [
   "./js/protocol.js",
   "./js/checklist.js",
   "./js/diet.js",
-  "./js/meal-editor.js",
+  "./js/meal-picker.js",
   "./js/report.js",
   "./js/ui.js",
   "./assets/icons/icon-192.png",

@@ -33,7 +33,7 @@ import {
 } from "./db.js";
 import { mergeDietForDate } from "./diet.js";
 import { buildWeeklyReport } from "./report.js";
-import { openMealEditor } from "./meal-editor.js";
+import { openMealPicker } from "./meal-picker.js";
 import {
   $,
   closeModal,
@@ -276,7 +276,7 @@ function renderNutritionSlide(record, overrides) {
           `;
         }).join("")}
       </div>
-      <p style="margin: 10px 4px 0; font-size: 11px; color: var(--text-mute);">Tieni premuto un pasto per modificarlo.</p>
+      <p style="margin: 10px 4px 0; font-size: 11px; color: var(--text-mute);">Tieni premuto un pasto per vedere le varianti equivalenti.</p>
     </article>
   `;
 }
@@ -348,7 +348,7 @@ function bindTodayEvents(record, overrides) {
       const meals = mergeDietForDate(record.date, plan.meals, overrides);
       const meal = meals.find((m) => m.id === mealId);
       if (!meal) return;
-      await openMealEditor({ date: record.date, meal, onSaved: () => renderToday() });
+      await openMealPicker({ date: record.date, meal, onSaved: () => renderToday() });
     });
   });
 

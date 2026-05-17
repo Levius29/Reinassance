@@ -16,33 +16,44 @@ export const PROTOCOL = {
 export const SUPPLEMENT_BLOCKS = [
   {
     id: "suppl_morning",
-    time: "07:45",
-    label: "Colazione",
-    items: ["Vitamina D3 4.000 UI", "B-complex (folati+B12)", "Vitamina C 1g", "Fermenti lattici"],
-  },
-  {
-    id: "suppl_empty",
-    time: "10:00",
-    label: "Stomaco vuoto",
-    items: ["Zinco 20 mg", "NAC 600 mg"],
+    time: "08:00",
+    label: "Colazione (con grassi)",
+    items: [
+      "Vitamina D3 4.000 UI",
+      "Omega-3 2 cps",
+      "B-complex (folati+B12)",
+      "Vitamina C 1 g",
+    ],
   },
   {
     id: "suppl_lunch",
     time: "13:00",
     label: "Pranzo",
-    items: ["Creatina 5 g", "Black Maca", "Coenzima Q10"],
+    items: [
+      "Creatina 5 g",
+      "Black Maca",
+      "Coenzima Q10",
+      "Fermenti lattici",
+    ],
   },
   {
-    id: "suppl_dinner",
-    time: "20:00",
-    label: "Cena",
-    items: ["Omega-3 2 cps", "Milk Thistle"],
+    id: "suppl_afternoon",
+    time: "16:30",
+    label: "Pomeriggio (stomaco vuoto)",
+    items: [
+      "Zinco 20 mg",
+      "NAC 600 mg",
+    ],
   },
   {
     id: "suppl_presleep",
-    time: "21:00",
+    time: "22:00",
     label: "Pre-sonno",
-    items: ["Magnesio bisglicinato 350 mg", "Ashwagandha KSM-66 600 mg"],
+    items: [
+      "Magnesio bisglicinato 350 mg",
+      "Ashwagandha KSM-66 600 mg",
+      "Milk Thistle",
+    ],
   },
 ];
 
@@ -50,143 +61,140 @@ export const DIET_PLAN = {
   1: {
     label: "Lunedì",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Avena 80g cotta in acqua",
-        "4 albumi + 1 uovo intero strapazzati",
-        "Frutti rossi 100g",
-        "Caffè nero",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Avena 80g cotta in acqua", "4 albumi + 1 uovo intero strapazzati", "Frutti rossi 100g", "Caffè nero"],
+        ["Pane integrale 80g tostato", "Ricotta 150g + miele 1 cucchiaino", "1 mela", "Caffè nero"],
+        ["Yogurt greco 0% 250g", "Granola 40g + noci 15g", "Frutti rossi 100g", "Caffè nero"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Pollo 200g grigliato",
-        "Riso basmati 100g (peso secco)",
-        "Verdure miste cotte + 1 cucchiaio olio EVO",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Pollo 200g grigliato", "Riso basmati 100g (peso secco)", "Verdure miste cotte + 1 cucchiaio olio EVO"],
+        ["Manzo magro 200g", "Patate 250g al forno", "Insalata mista + olio EVO"],
+        ["Tonno al naturale 200g", "Pasta integrale 100g", "Pomodorini + rucola + olio EVO"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Salmone 180g al forno",
-        "Patate dolci 200g",
-        "Insalata mista + limone",
+      { id: "meal_dinner", label: "Cena", time: "20:00", alternatives: [
+        ["Salmone 180g al forno", "Patate dolci 200g", "Insalata mista + limone"],
+        ["Merluzzo 200g al vapore", "Riso 80g (peso secco)", "Broccoli + olio EVO"],
+        ["Tacchino 200g", "Quinoa 80g (peso secco)", "Zucchine saltate + olio EVO"],
       ]},
     ],
   },
   2: {
     label: "Martedì",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Pane integrale 80g",
-        "Ricotta 150g",
-        "Miele 1 cucchiaino",
-        "Frutta fresca 1 porzione",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Pane integrale 80g", "Ricotta 150g", "Miele 1 cucchiaino", "Frutta fresca 1 porzione"],
+        ["Avena 80g cotta", "Whey 30g", "Banana", "Mandorle 15g"],
+        ["3 uova strapazzate", "Pane integrale 60g", "Avocado mezzo", "Frutta fresca"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Pasta integrale 100g",
-        "Tonno al naturale 150g",
-        "Pomodorini + olio EVO",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Pasta integrale 100g", "Tonno al naturale 150g", "Pomodorini + olio EVO", "Spuntino 16:30: banana + mandorle 30g"],
+        ["Riso 100g (peso secco)", "Pollo 180g", "Verdure grigliate + olio EVO", "Spuntino 16:30: pane integrale 50g + miele"],
+        ["Patate 250g al forno", "Salmone 150g", "Insalata + olio EVO", "Spuntino 16:30: yogurt greco 0% 150g + frutti rossi"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Spuntino pre-MT 16:30: banana + mandorle 30g",
-        "Post-allenamento: pollo 180g + quinoa 80g + verdure cotte",
+      { id: "meal_dinner", label: "Cena post-MT", time: "21:30", alternatives: [
+        ["Pollo 180g", "Quinoa 80g (peso secco)", "Verdure cotte"],
+        ["Tacchino 180g", "Riso 80g (peso secco)", "Zucchine + olio EVO"],
+        ["Manzo magro 180g", "Patate 200g", "Insalata + olio EVO"],
       ]},
     ],
   },
   3: {
     label: "Mercoledì",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Avena 80g cotta",
-        "Whey 30g",
-        "Banana",
-        "Burro arachidi 15g",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Avena 80g cotta", "Whey 30g", "Banana", "Burro arachidi 15g"],
+        ["Pancake avena (80g avena + 3 albumi)", "Frutti rossi 100g", "Sciroppo acero 1 cucchiaino"],
+        ["Yogurt greco 0% 250g", "Granola 50g", "Banana", "Noci 15g"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Manzo magro 200g",
-        "Riso 100g (peso secco)",
-        "Spinaci saltati + olio EVO",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Manzo magro 200g", "Riso 100g (peso secco)", "Spinaci saltati + olio EVO"],
+        ["Pollo 220g", "Patate dolci 250g", "Verdure grigliate + olio EVO"],
+        ["Salmone 180g", "Pasta integrale 100g", "Pomodorini + rucola + olio EVO"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Merluzzo 200g",
-        "Patate 200g",
-        "Broccoli al vapore",
+      { id: "meal_dinner", label: "Cena", time: "20:00", alternatives: [
+        ["Merluzzo 200g", "Patate 200g", "Broccoli al vapore"],
+        ["Pesce azzurro 200g (sgombro/alici)", "Riso 80g (peso secco)", "Insalata + olio EVO"],
+        ["Tacchino 200g", "Patate dolci 200g", "Zucchine al forno"],
       ]},
     ],
   },
   4: {
     label: "Giovedì",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Yogurt greco 0% 250g",
-        "Granola 50g",
-        "Frutta fresca",
-        "Noci 20g",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Yogurt greco 0% 250g", "Granola 50g", "Frutta fresca", "Noci 20g"],
+        ["Pane integrale 80g", "Ricotta 150g + miele", "Frutta fresca", "Mandorle 15g"],
+        ["Avena 80g cotta", "2 uova strapazzate", "Frutti rossi 100g", "Caffè nero"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Insalata mista grande",
-        "3 uova sode",
-        "Pane integrale 60g",
-        "Olio EVO + aceto",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Insalata mista grande", "3 uova sode", "Pane integrale 60g", "Olio EVO + aceto"],
+        ["Quinoa 80g (peso secco)", "Pollo 180g", "Verdure grigliate + olio EVO"],
+        ["Riso integrale 80g (peso secco)", "Tonno 150g", "Insalata + pomodorini + olio EVO"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Zuppa legumi 300g (lenticchie/ceci/fagioli)",
-        "Pane integrale 60g",
-        "Formaggio fresco 60g",
+      { id: "meal_dinner", label: "Cena", time: "20:00", alternatives: [
+        ["Zuppa legumi 300g (lenticchie/ceci/fagioli)", "Pane integrale 60g", "Formaggio fresco 60g"],
+        ["Pasta e fagioli 250g", "Insalata mista + olio EVO", "Frutta fresca"],
+        ["Hummus 150g + pane integrale 60g", "Verdure crude", "Uova sode 2"],
       ]},
     ],
   },
   5: {
     label: "Venerdì",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Pancake avena (80g avena + 3 albumi + 1 uovo)",
-        "Frutti rossi 100g",
-        "Sciroppo acero 1 cucchiaino",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Pancake avena (80g avena + 3 albumi + 1 uovo)", "Frutti rossi 100g", "Sciroppo acero 1 cucchiaino"],
+        ["Avena 80g cotta", "Whey 30g", "Banana", "Burro arachidi 15g"],
+        ["3 uova strapazzate", "Pane integrale 80g", "Avocado mezzo", "Frutta fresca"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Pollo 200g",
-        "Patate 250g al forno",
-        "Verdure grigliate + olio EVO",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Pollo 200g", "Patate 250g al forno", "Verdure grigliate + olio EVO"],
+        ["Manzo magro 200g", "Riso 100g (peso secco)", "Spinaci + olio EVO"],
+        ["Salmone 180g", "Quinoa 100g (peso secco)", "Insalata mista + olio EVO"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Tacchino 200g",
-        "Riso 100g (peso secco)",
-        "Zucchine saltate",
+      { id: "meal_dinner", label: "Cena", time: "20:00", alternatives: [
+        ["Tacchino 200g", "Riso 100g (peso secco)", "Zucchine saltate"],
+        ["Pollo 200g", "Patate dolci 200g", "Verdure miste cotte"],
+        ["Merluzzo 220g", "Patate 200g", "Broccoli al vapore + olio EVO"],
       ]},
     ],
   },
   6: {
     label: "Sabato",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "08:00", items: [
-        "Toast integrale 2 fette",
-        "2 uova alla coque",
-        "Avocado mezzo",
-        "Frutta fresca",
+      { id: "meal_breakfast", label: "Colazione", time: "08:00", alternatives: [
+        ["Toast integrale 2 fette", "2 uova alla coque", "Avocado mezzo", "Frutta fresca"],
+        ["Pancake avena + ricotta 100g", "Frutti rossi 100g", "Miele 1 cucchiaino"],
+        ["Yogurt greco 0% 300g", "Granola 50g + noci 20g", "Banana"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:00", items: [
-        "Pasta 100g",
-        "Ragù magro di manzo",
-        "Parmigiano 15g",
+      { id: "meal_lunch", label: "Pranzo", time: "13:00", alternatives: [
+        ["Pasta 100g", "Ragù magro di manzo", "Parmigiano 15g", "Spuntino 16:30: banana + mandorle 30g"],
+        ["Lasagna porzione media", "Insalata + olio EVO", "Frutta", "Spuntino 16:30: pane integrale 50g + miele"],
+        ["Riso integrale 100g (peso secco)", "Pollo 200g", "Verdure miste + olio EVO", "Spuntino 16:30: yogurt greco 0% 150g + frutti rossi"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Spuntino pre-MT 16:30: banana + mandorle 30g",
-        "Pesce azzurro 200g (sgombro/alici)",
-        "Verdure + olio EVO",
+      { id: "meal_dinner", label: "Cena post-MT", time: "21:30", alternatives: [
+        ["Pesce azzurro 200g (sgombro/alici)", "Verdure cotte + olio EVO", "Pane integrale 40g"],
+        ["Salmone 180g", "Patate dolci 150g", "Insalata + olio EVO"],
+        ["Tonno 180g", "Quinoa 70g (peso secco)", "Pomodorini + olio EVO"],
       ]},
     ],
   },
   0: {
     label: "Domenica",
     meals: [
-      { id: "meal_breakfast", label: "Colazione", time: "09:00", items: [
-        "Brunch libero: uova benedict / pancake / scelta",
-        "Caffè + frutta",
+      { id: "meal_breakfast", label: "Colazione", time: "09:00", alternatives: [
+        ["3 uova alla benedict", "Pane integrale 60g", "Avocado mezzo", "Caffè + frutta"],
+        ["Pancake avena 80g + 3 albumi + 1 uovo", "Frutti rossi", "Miele 1 cucchiaino"],
+        ["Yogurt greco 0% 300g", "Granola 50g + noci", "Banana + frutti rossi"],
       ]},
-      { id: "meal_lunch", label: "Pranzo", time: "13:30", items: [
-        "Pasto libero con focus omega-3",
-        "Opzioni: salmone, sgombro, sardine, o piatto di legumi",
+      { id: "meal_lunch", label: "Pranzo", time: "13:30", alternatives: [
+        ["Salmone 200g al forno", "Patate dolci 250g", "Insalata + olio EVO"],
+        ["Sgombro 200g", "Riso 100g (peso secco)", "Verdure grigliate + olio EVO"],
+        ["Legumi misti 300g + cereali integrali", "Insalata + olio EVO", "Frutta fresca"],
       ]},
-      { id: "meal_dinner", label: "Cena", time: "20:00", items: [
-        "Insalatona ricca proteica",
-        "Petto pollo o tonno o uova",
-        "Semi misti + olio EVO",
+      { id: "meal_dinner", label: "Cena", time: "20:00", alternatives: [
+        ["Petto pollo 200g", "Insalatona ricca proteica", "Semi misti + olio EVO"],
+        ["Tonno 180g", "Quinoa 80g (peso secco)", "Verdure cotte + olio EVO"],
+        ["Uova sode 3", "Pane integrale 60g", "Hummus 100g + verdure crude"],
       ]},
     ],
   },
@@ -203,7 +211,7 @@ export const DAY_TYPES = {
         "Risc. 5': circoli spalle, 10 push-up leggeri",
         "Panca piana manubri — 4×5-6 (28-32 kg/m, pesante)",
         "Shoulder press manubri seduto — 4×6-8 (20-26 kg/m)",
-        "Panca inclinata manubri — 3×8 (22-28 kg/m)",
+        "Push-up declinati piedi su panca — 3×10-12 (corpo libero, lento sul cedere)",
         "Alzate laterali — 3×12 (8-12 kg/m, lento)",
         "French press manubri su panca — 3×10 (12-16 kg/m)",
         "Core 5': plank 3×45\" + hollow hold 2×30\"",
