@@ -1,4 +1,4 @@
-const CACHE = "protocol-v10";
+const CACHE = "protocol-v11";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
@@ -8,8 +8,8 @@ const LOCAL_SHELL = [
   "./js/db.js",
   "./js/protocol.js",
   "./js/checklist.js",
-  "./js/metrics.js",
-  "./js/charts.js",
+  "./js/diet.js",
+  "./js/meal-editor.js",
   "./js/report.js",
   "./js/ui.js",
   "./assets/icons/icon-192.png",
@@ -17,7 +17,7 @@ const LOCAL_SHELL = [
   "./assets/icons/icon-512-maskable.png",
 ];
 const OPTIONAL_ASSETS = [
-  "https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js",
+  "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap",
 ];
 
 self.addEventListener("install", (event) => {
