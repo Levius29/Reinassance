@@ -34,3 +34,8 @@ test("validates backup payload shape", () => {
   assert.equal(validateBackupPayload({ version: BACKUP_VERSION, days: {} }).ok, false);
   assert.equal(validateBackupPayload({ version: 999, days: [] }).ok, false);
 });
+
+test("accepts legacy v1 backup payload", () => {
+  const result = validateBackupPayload({ version: 1, days: [] });
+  assert.equal(result.ok, true);
+});

@@ -1,11 +1,14 @@
 export const DB_NAME = "protocol_db";
 export const DB_VERSION = 2;
 export const BACKUP_VERSION = 2;
+export const LEGACY_BACKUP_VERSIONS = [1];
 export const MIRROR_KEY = "protocol_backup_v2";
+export const LEGACY_MIRROR_KEYS = ["protocol_backup_v1"];
 
 const STORE_DEFS = {
   days: { keyPath: "date", indexes: [{ name: "weekNumber", keyPath: "weekNumber" }] },
   weeks: { keyPath: "weekNumber", indexes: [] },
+  // id is always a composite "${date}_${mealId}" set by caller — no autoIncrement
   diet_overrides: { keyPath: "id", indexes: [{ name: "by-date", keyPath: "date" }] },
   settings: { keyPath: "key", indexes: [] },
   meta: { keyPath: "key", indexes: [] },
@@ -41,7 +44,7 @@ export function normalizeSnapshot(payload) {
 
 export function validateBackupPayload(payload) {
   if (!payload || typeof payload !== "object") return { ok: false, error: "Backup non valido." };
-  if (payload.version !== BACKUP_VERSION && payload.version !== 1) {
+  if (payload.version !== BACKUP_VERSION && !LEGACY_BACKUP_VERSIONS.includes(payload.version)) {
     return { ok: false, error: "Versione backup non supportata." };
   }
   for (const storeName of STORE_NAMES) {
@@ -180,14 +183,31 @@ export async function isDatabaseEmpty() {
 
 export function readMirror() {
   if (typeof localStorage === "undefined") return null;
-  const legacyKey = "protocol_backup_v1";
-  const raw = localStorage.getItem(MIRROR_KEY) ?? localStorage.getItem(legacyKey);
+  let raw = localStorage.getItem(MIRROR_KEY);
+  let usedLegacy = false;
+  if (!raw) {
+    for (const key of LEGACY_MIRROR_KEYS) {
+      const candidate = localStorage.getItem(key);
+      if (candidate) {
+        raw = candidate;
+        usedLegacy = true;
+        break;
+      }
+    }
+  }
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
     const validation = validateBackupPayload(parsed);
     if (!validation.ok) return null;
-    return normalizeSnapshot(parsed);
+    const normalized = normalizeSnapshot(parsed);
+    if (usedLegacy) {
+      try {
+        localStorage.setItem(MIRROR_KEY, JSON.stringify({ ...normalized, version: BACKUP_VERSION }));
+        for (const key of LEGACY_MIRROR_KEYS) localStorage.removeItem(key);
+      } catch {}
+    }
+    return normalized;
   } catch {
     return null;
   }
