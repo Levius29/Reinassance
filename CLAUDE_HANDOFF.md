@@ -6,6 +6,10 @@ Questa è una PWA statica, senza build step, pensata per iPhone. Serve come cock
 
 Priorità utente attuale: UX mobile snella, schermata non scrollabile globalmente, slide interne scorrevoli, design da rifinire.
 
+## TODO aperti
+
+- **Fix barra `Settimana / Report` su iPhone reale**: non considerare risolto. Nello screenshot utente resta ancora troppo alta rispetto al bordo inferiore e può sembrare sospesa sopra la safe area/Safari. Serve ripensarla come bottom action bar realmente aderente al fondo visibile su Safari e PWA standalone, verificando da iPhone fisico.
+
 ## Come aprire
 
 Da cartella progetto:
