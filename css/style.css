@@ -85,7 +85,8 @@ main {
 }
 
 #view-oggi {
-  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- COCKPIT HERO --- */
@@ -270,6 +271,7 @@ main {
 
 /* --- DAILY BOARD (4 SLIDES) --- */
 .daily-board {
+  flex: 1 1 0;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
