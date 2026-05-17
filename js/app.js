@@ -1,75 +1,80 @@
 import {
   DAY_TYPES,
-  LAB_FIELDS,
   MANIFESTO,
   MILESTONES,
   PROTOCOL,
   SUPPLEMENT_BLOCKS,
+  DIET_PLAN,
   addDays,
   clampProtocolWeek,
   getDayTypeForDate,
-  getDietForDate,
   getInitialActiveDate,
   getProtocolWeek,
   getWeekDates,
+  parseDate,
   todayString,
 } from "./protocol.js";
 import {
   buildDefaultDayRecord,
-  calculateCompletedPct,
   getChecklistItemsForDayType,
   groupChecklistItems,
   normalizeDayRecord,
 } from "./checklist.js";
 import {
-  deleteOne,
   downloadSnapshot,
   exportAll,
   getAll,
   getOne,
-  getSetting,
   importAll,
   maybeRestoreMirror,
   putOne,
   setSetting,
+  getSetting,
 } from "./db.js";
-import { metricOptions, summarizeWeek } from "./metrics.js";
+import { mergeDietForDate } from "./diet.js";
 import { buildWeeklyReport } from "./report.js";
-import { renderChart } from "./charts.js";
+import { openMealEditor } from "./meal-editor.js";
 import {
   $,
-  $$,
   closeModal,
   confirmDialog,
   debounce,
   escapeHtml,
-  field,
   formatHumanDate,
-  numberInput,
+  haptic,
+  longPress,
+  nextTaskLabel,
   openModal,
   pctLabel,
+  ringSvg,
   setTheme,
-  textareaInput,
   textInput,
   toast,
+  updateRing,
 } from "./ui.js";
+
+const SLIDES = [
+  { id: "training", label: "Allenamento" },
+  { id: "supplements", label: "Integratori" },
+  { id: "nutrition", label: "Alimentazione" },
+  { id: "habits", label: "Abitudini" },
+];
 
 const state = {
   startDate: null,
-  route: "oggi",
   today: todayString(),
   activeDate: todayString(),
   selectedWeek: 1,
-  selectedMetric: "weight",
-  theme: "auto",
+  activeSlide: 0,
+  lastPct: 0,
 };
 
-const saveTodayDebounced = debounce((record) => saveDay(record), 500);
-const saveWeekDebounced = debounce((record) => saveWeek(record), 500);
+const saveTodayDebounced = debounce((record) => saveDay(record), 400);
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  setTheme();
   bindGlobalEvents();
   await registerServiceWorker();
   try {
@@ -77,8 +82,6 @@ async function init() {
   } catch (error) {
     toast(error.message, "bad");
   }
-  state.theme = await getSetting("theme", "auto");
-  setTheme(state.theme);
   state.startDate = await getSetting("startDate", null);
   if (!state.startDate) {
     showOnboarding();
@@ -86,79 +89,44 @@ async function init() {
   }
   state.activeDate = getInitialActiveDate(state.today, state.startDate);
   state.selectedWeek = clampProtocolWeek(getProtocolWeek(state.today, state.startDate));
-  routeFromHash();
-  await render();
+  await renderToday();
 }
 
 function bindGlobalEvents() {
-  window.addEventListener("hashchange", async () => {
-    routeFromHash();
-    await render();
-  });
   document.addEventListener("click", async (event) => {
-    const close = event.target.closest("[data-close-modal]");
-    if (close) closeModal();
-
+    if (event.target.closest("[data-close-modal]")) closeModal();
     const action = event.target.closest("[data-action]")?.dataset.action;
     if (!action) return;
-    if (action === "theme") await cycleTheme();
-    if (action === "backup") await exportBackup();
     if (action === "manifesto") showManifesto();
-    if (action === "panel") await showPanel(event.target.closest("[data-panel]")?.dataset.panel);
-    if (action === "new-lab") showLabForm();
-    if (action === "print") window.print();
-    if (action === "import") $("#importFile").click();
+    if (action === "panel-week") showWeekPanel();
+    if (action === "panel-report") showReportPanel();
     if (action === "export") await exportBackup();
+    if (action === "import") $("#importFile").click();
+    if (action === "print") window.print();
   });
   $("#importFile").addEventListener("change", handleImport);
-}
-
-function routeFromHash() {
-  state.route = "oggi";
-  $$(".view").forEach((view) => (view.hidden = view.id !== `view-${state.route}`));
-}
-
-async function render() {
-  if (!state.startDate) return;
-  if (state.route === "oggi") await renderToday();
-  if (state.route === "settimana") await renderWeek();
-  if (state.route === "valori") await renderLabs();
-  if (state.route === "grafici") await renderChartsView();
-  if (state.route === "report") await renderReport();
-}
-
-function isStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
 function showOnboarding() {
   openModal({
     title: "Inizio protocollo",
     body: `
-      <p>Scegli il giorno 1. Da qui calcolo settimane, allenamenti e checkpoint.</p>
-      <label class="field onboarding-field"><span>Data inizio</span><input id="startDateInput" class="onboarding-date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="AAAA-MM-GG" value="${state.today}"></label>
+      <p>Scegli il giorno 1. Calcolo settimane, allenamenti, checkpoint da qui.</p>
+      <label class="field"><span>Data inizio</span><input id="startDateInput" type="text" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="AAAA-MM-GG" value="${state.today}"></label>
+      <p style="margin-top:14px;font-size:12px;color:var(--text-mute)">Piano alimentare incluso è un template. Adatta in base a fame, recupero, sensazione. Long-press su un pasto per modificarlo.</p>
     `,
     actions: `<button class="button primary" type="button" id="saveStartDate">Inizia</button>`,
   });
   $("#saveStartDate").addEventListener("click", async () => {
     const value = $("#startDateInput").value;
-    if (!value) return toast("Inserisci data inizio.", "bad");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return toast("Formato data: AAAA-MM-GG.", "bad");
     await setSetting("startDate", value);
     state.startDate = value;
     state.activeDate = value > state.today ? value : state.today;
     state.selectedWeek = 1;
     closeModal();
-    await render();
+    await renderToday();
   });
-}
-
-async function cycleTheme() {
-  const next = state.theme === "auto" ? "dark" : state.theme === "dark" ? "light" : "auto";
-  state.theme = next;
-  setTheme(next);
-  await setSetting("theme", next);
-  toast(`Tema: ${next}`);
 }
 
 async function renderToday() {
@@ -169,415 +137,351 @@ async function renderToday() {
   const checklist = getChecklistItemsForDayType(record.dayType);
   const groups = groupChecklistItems(checklist);
   const milestone = MILESTONES[record.weekNumber];
-  const streak = await calculateStreak();
   state.selectedWeek = clampProtocolWeek(record.weekNumber);
-  host.style.setProperty("--day-accent", dayType.accent);
+  state.lastPct = record.completedPct;
+
+  document.documentElement.style.setProperty("--day-accent", dayType.accent);
+  const next = nextTaskLabel(record, dayType);
+  const overrides = await getAll("diet_overrides");
+
   host.innerHTML = `
-    <div class="today-head cockpit-head">
+    <div class="cockpit-hero">
       <div>
-        <p class="eyebrow">${escapeHtml(formatHumanDate(record.date))}</p>
-        <h2>Settimana ${record.weekNumber}/${PROTOCOL.totalWeeks}</h2>
+        <div class="head-eyebrow">${escapeHtml(formatHumanDate(record.date))}</div>
+        <h1>Settimana ${record.weekNumber}/${PROTOCOL.totalWeeks}</h1>
+        <div class="next-task">${next.time ? `<b>${escapeHtml(next.time)}</b>` : ""}<span>${escapeHtml(next.label)}</span></div>
+        <div class="day-nav">
+          <button type="button" data-day-shift="-1" aria-label="Giorno precedente">←</button>
+          <button type="button" data-day-shift="1" aria-label="Giorno successivo">→</button>
+          <button type="button" data-action="manifesto" aria-label="Manifesto" style="font-size:11px;padding:0 12px;width:auto">Manifesto</button>
+        </div>
       </div>
-      <div class="progress-badge"><strong>${pctLabel(record.completedPct)}</strong><span>streak ${streak}</span></div>
+      <div class="ring" id="ring">
+        ${ringSvg(record.completedPct)}
+        <div class="ring-label"><span class="num">${Math.round(record.completedPct * 100)}</span><small>%</small></div>
+      </div>
     </div>
-    <div class="progress-track"><span style="width:${Math.round(record.completedPct * 100)}%"></span></div>
-    <div class="day-switcher">
-      <button class="button ghost" type="button" data-day-shift="-1">←</button>
-      <input type="date" value="${record.date}" data-active-date>
-      <button class="button ghost" type="button" data-day-shift="1">→</button>
-      <span class="pill" style="--pill:${dayType.accent}">${escapeHtml(dayType.label)}</span>
-    </div>
+
     ${renderWeekStrip(record)}
-    <div class="quick-panel-row" aria-label="Pannelli rapidi">
-      <button class="quick-panel" type="button" data-action="panel" data-panel="week">Settimana</button>
-    </div>
+
     ${milestone ? `<aside class="milestone">${escapeHtml(milestone.text)}</aside>` : ""}
-    <div class="daily-board">
-      ${renderTrainingCard(record, groups.training)}
-      ${renderSupplements(record, groups.supplements)}
-      ${renderNutritionCard(record)}
-      ${renderHabits(record, groups.habits)}
+
+    <div class="slide-header">
+      <div class="slide-dots">
+        ${SLIDES.map((_, i) => `<button class="slide-dot ${i === 0 ? "active" : ""}" data-slide-to="${i}" aria-label="Slide ${i+1}"></button>`).join("")}
+      </div>
+      <div class="slide-label" id="slideLabel">${escapeHtml(SLIDES[0].label)}</div>
+    </div>
+
+    <div class="daily-board" id="board">
+      <section class="slide" data-slide-id="training">${renderTrainingSlide(record, dayType)}</section>
+      <section class="slide" data-slide-id="supplements">${renderSupplementsSlide(record, groups.supplements)}</section>
+      <section class="slide" data-slide-id="nutrition">${renderNutritionSlide(record, overrides)}</section>
+      <section class="slide" data-slide-id="habits">${renderHabitsSlide(record, groups.habits)}</section>
+    </div>
+
+    <div class="panel-row">
+      <button class="panel-button" type="button" data-action="panel-week">Settimana</button>
+      <button class="panel-button" type="button" data-action="panel-report">Report</button>
     </div>
   `;
-  bindTodayEvents(record);
+
+  bindTodayEvents(record, overrides);
 }
 
 function renderWeekStrip(record) {
   const dates = getWeekDates(state.startDate, clampProtocolWeek(record.weekNumber));
-  const activeIndex = Math.max(0, dates.indexOf(record.date));
   return `
-    <div class="week-progress" aria-label="Progressione settimana">
-      <div class="week-strip">
-        ${dates
-          .map((date, index) => {
-            const active = date === record.date ? "active" : "";
-            const filled = index <= activeIndex ? "filled" : "";
-            const label = new Intl.DateTimeFormat("it-IT", { weekday: "short", day: "2-digit" }).format(new Date(`${date}T12:00:00`));
-            return `
-              <button class="week-strip-day ${filled} ${active}" type="button" data-strip-date="${date}">
-                <span>${escapeHtml(label)}</span>
-                <i>${index + 1}</i>
-              </button>
-            `;
-          })
-          .join("")}
-      </div>
+    <div class="week-strip" role="tablist" aria-label="Settimana">
+      ${dates.map((date) => {
+        const dayType = DAY_TYPES[getDayTypeForDate(date)];
+        const isPastOrToday = date <= state.today;
+        const isActive = date === record.date;
+        const wkName = new Intl.DateTimeFormat("it-IT", { weekday: "short" }).format(parseDate(date));
+        const wkDay = new Intl.DateTimeFormat("it-IT", { day: "2-digit" }).format(parseDate(date));
+        const classes = ["week-cell", isPastOrToday ? "filled" : "", isActive ? "active" : ""].filter(Boolean).join(" ");
+        return `
+          <button class="${classes}" type="button" data-strip-date="${date}" style="--cell-accent:${dayType.accent}">
+            <span class="wk-name">${escapeHtml(wkName.slice(0, 3))}</span>
+            <span class="wk-day">${escapeHtml(wkDay)}</span>
+            <span class="wk-dot"></span>
+          </button>
+        `;
+      }).join("")}
     </div>
   `;
 }
 
-function renderTrainingCard(record) {
-  const day = DAY_TYPES[record.dayType];
+function renderTrainingSlide(record, dayType) {
   return `
-    <section class="card compact-card workout-card">
-      <div class="card-title"><span>${escapeHtml(day.training.time)}</span><h3>${escapeHtml(day.training.title)}</h3></div>
-      <label class="check-row primary-check">
+    <article class="card">
+      <div class="card-eyebrow">${escapeHtml(dayType.label)}</div>
+      <div class="card-title">
+        <h3>${escapeHtml(dayType.training.title)}</h3>
+        <span class="meta">${escapeHtml(dayType.training.time)}</span>
+      </div>
+      <label class="check-row primary">
         <input type="checkbox" data-item="training" ${record.items.training ? "checked" : ""}>
-        <span>Allenamento fatto</span>
+        <span>Allenamento completato</span>
       </label>
-      <div class="compact-details">
-        <div class="static-section-title">Esercizi</div>
-        <ul class="exercise-list">${day.training.exercises.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-      </div>
-    </section>
+      <ol class="exercise-list">
+        ${dayType.training.exercises.map((ex) => `<li>${escapeHtml(ex)}</li>`).join("")}
+      </ol>
+    </article>
   `;
 }
 
-function renderSupplements(record, items) {
+function renderSupplementsSlide(record, items) {
   return `
-    <section class="card compact-card supplement-card">
-      <div class="card-title"><span>Orari + cosa prendere</span><h3>Integratori</h3></div>
-      <div class="supplement-grid">
-        ${items
-          .map((item) => {
-            const block = SUPPLEMENT_BLOCKS.find((entry) => entry.id === item.id);
-            return `
-              <label class="supplement-tile ${record.items[item.id] ? "checked" : ""}">
-                <input type="checkbox" data-item="${item.id}" ${record.items[item.id] ? "checked" : ""}>
-                <span class="supplement-time">${escapeHtml(block.time)}</span>
-                <span class="supplement-label">${escapeHtml(block.label)}</span>
-                <span class="supplement-items">${block.items.map((detail) => `<em>${escapeHtml(detail)}</em>`).join("")}</span>
-              </label>
-            `;
-          })
-          .join("")}
+    <article class="card">
+      <div class="card-eyebrow">Cinque fasce orarie</div>
+      <div class="card-title"><h3>Integratori</h3><span class="meta">${items.length} blocchi</span></div>
+      <div class="tile-grid">
+        ${items.map((item) => {
+          const block = SUPPLEMENT_BLOCKS.find((b) => b.id === item.id);
+          const checked = record.items[item.id] === true;
+          return `
+            <label class="supp-tile ${checked ? "checked" : ""}">
+              <input type="checkbox" data-item="${item.id}" ${checked ? "checked" : ""}>
+              <span class="time">${escapeHtml(block.time)}</span>
+              <span class="label">${escapeHtml(block.label)}</span>
+              <span class="items">${block.items.map((d) => `<em>${escapeHtml(d)}</em>`).join("")}</span>
+            </label>
+          `;
+        }).join("")}
       </div>
-    </section>
+    </article>
   `;
 }
 
-function renderNutritionCard(record) {
-  const diet = getDietForDate(record.date);
+function renderNutritionSlide(record, overrides) {
+  const weekday = parseDate(record.date).getUTCDay();
+  const plan = DIET_PLAN[weekday] ?? DIET_PLAN[0];
+  const meals = mergeDietForDate(record.date, plan.meals, overrides);
   return `
-    <section class="card compact-card nutrition-card">
-      <div class="card-title"><span>${escapeHtml(diet.label)}</span><h3>Alimentazione</h3></div>
-      <div class="meal-grid">
-        ${diet.meals
-          .map((meal) => {
-            return `
-              <label class="meal-tile ${record.items[meal.id] ? "checked" : ""}">
-                <input type="checkbox" data-item="${meal.id}" ${record.items[meal.id] ? "checked" : ""}>
-                <span class="meal-time">${escapeHtml(meal.time)}</span>
-                <span class="meal-label">${escapeHtml(meal.label)}</span>
-                <span class="meal-items">${meal.items.map((item) => `<em>${escapeHtml(item)}</em>`).join("")}</span>
-              </label>
-            `;
-          })
-          .join("")}
+    <article class="card">
+      <div class="card-eyebrow">${escapeHtml(plan.label)}</div>
+      <div class="card-title"><h3>Alimentazione</h3><span class="meta">${meals.length} pasti</span></div>
+      <div class="tile-grid">
+        ${meals.map((meal) => {
+          const checked = record.items[meal.id] === true;
+          const classes = ["meal-tile", checked ? "checked" : "", meal.overridden ? "overridden" : ""].filter(Boolean).join(" ");
+          return `
+            <label class="${classes}" data-meal-id="${meal.id}">
+              <input type="checkbox" data-item="${meal.id}" ${checked ? "checked" : ""}>
+              <span class="time">${escapeHtml(meal.time)}</span>
+              <span class="label">${escapeHtml(meal.label)}</span>
+              <span class="items">${meal.items.map((i) => `<em>${escapeHtml(i)}</em>`).join("")}</span>
+            </label>
+          `;
+        }).join("")}
       </div>
-    </section>
+      <p style="margin: 10px 4px 0; font-size: 11px; color: var(--text-mute);">Tieni premuto un pasto per modificarlo.</p>
+    </article>
   `;
 }
 
-function renderHabits(record, items) {
+function renderHabitsSlide(record, items) {
+  const sleep = items.find((i) => i.id === "sleep");
+  const others = items.filter((i) => i.id !== "sleep");
   return `
-    <section class="card compact-card habit-card">
-      <div class="card-title"><span>Base</span><h3>Abitudini</h3></div>
+    <article class="card">
+      <div class="card-eyebrow">Base giornaliera</div>
+      <div class="card-title"><h3>Abitudini</h3><span class="meta">${items.length}</span></div>
       <div class="habit-grid">
-        ${items
-          .map((item) => {
-            if (item.type === "number") {
-              const suffix = item.id === "sleep" ? "ore" : "passi";
-              return field(item.label, `<input type="number" inputmode="decimal" data-item="${item.id}" value="${escapeHtml(record.items[item.id])}" placeholder="${suffix}">`);
-            }
-            return `<label class="check-row"><input type="checkbox" data-item="${item.id}" ${record.items[item.id] ? "checked" : ""}><span>${escapeHtml(item.label)}</span></label>`;
-          })
-          .join("")}
+        <div class="habit-num full">
+          <small>${escapeHtml(sleep.label)}</small>
+          <input type="number" inputmode="decimal" data-item="sleep" value="${escapeHtml(record.items.sleep ?? "")}" placeholder="0">
+        </div>
+        ${others.map((item) => `
+          <label class="check-row full">
+            <input type="checkbox" data-item="${item.id}" ${record.items[item.id] ? "checked" : ""}>
+            <span>${escapeHtml(item.label)}</span>
+          </label>
+        `).join("")}
       </div>
-    </section>
+    </article>
   `;
 }
 
-async function showPanel(panel) {
-  const map = {
-    week: { title: "Settimana", render: renderWeek },
-    labs: { title: "Valori clinici", render: renderLabs },
-    charts: { title: "Grafici", render: renderChartsView },
-    report: { title: "Report", render: renderReport },
-  };
-  const item = map[panel];
-  if (!item) return;
-  openModal({
-    title: item.title,
-    body: `<div id="panelHost" class="panel-host"></div>`,
-    actions: `<button class="button primary" type="button" data-close-modal>Chiudi</button>`,
+function bindTodayEvents(record, overrides) {
+  const host = $("#view-oggi");
+  const board = $("#board", host);
+  const slideLabel = $("#slideLabel", host);
+  const ringEl = $("#ring", host);
+
+  host.querySelectorAll("[data-day-shift]").forEach((b) => {
+    b.addEventListener("click", async () => {
+      state.activeDate = addDays(state.activeDate, Number(b.dataset.dayShift));
+      await renderToday();
+    });
   });
-  await item.render($("#panelHost"));
+  host.querySelectorAll("[data-strip-date]").forEach((b) => {
+    b.addEventListener("click", async () => {
+      state.activeDate = b.dataset.stripDate;
+      await renderToday();
+    });
+  });
+  host.querySelectorAll("[data-slide-to]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const i = Number(b.dataset.slideTo);
+      slideTo(board, i);
+    });
+  });
+
+  const slides = host.querySelectorAll(".slide");
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+        const i = Array.from(slides).indexOf(entry.target);
+        setActiveSlide(i, slideLabel, host);
+      }
+    }
+  }, { root: board, threshold: 0.5 });
+  slides.forEach((s) => observer.observe(s));
+
+  host.querySelectorAll(".meal-tile").forEach((tile) => {
+    const mealId = tile.dataset.mealId;
+    longPress(tile, async () => {
+      const weekday = parseDate(record.date).getUTCDay();
+      const plan = DIET_PLAN[weekday] ?? DIET_PLAN[0];
+      const meals = mergeDietForDate(record.date, plan.meals, overrides);
+      const meal = meals.find((m) => m.id === mealId);
+      if (!meal) return;
+      await openMealEditor({ date: record.date, meal, onSaved: () => renderToday() });
+    });
+  });
+
+  host.addEventListener("change", (event) => {
+    if (event.target.matches("[data-item]")) updateFromDom(host, record, ringEl);
+  });
+  host.addEventListener("input", (event) => {
+    if (event.target.matches("input[type='number'][data-item]")) updateFromDom(host, record, ringEl);
+  });
 }
 
-function bindTodayEvents(record) {
-  const host = $("#view-oggi");
-  host.onchange = handleTodayChange;
-  host.oninput = handleTodayInput;
-  host.querySelectorAll("[data-day-shift]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      state.activeDate = addDays(state.activeDate, Number(button.dataset.dayShift));
-      await renderToday();
-    });
+function setActiveSlide(i, labelEl, host) {
+  if (state.activeSlide === i) return;
+  state.activeSlide = i;
+  host.querySelectorAll(".slide-dot").forEach((d, idx) => d.classList.toggle("active", idx === i));
+  labelEl.classList.add("fading");
+  setTimeout(() => {
+    labelEl.textContent = SLIDES[i].label;
+    labelEl.classList.remove("fading");
+  }, 150);
+}
+
+function slideTo(board, i) {
+  const width = board.clientWidth;
+  board.scrollTo({ left: i * width, behavior: "smooth" });
+}
+
+function updateFromDom(host, record, ringEl) {
+  const next = structuredClone(record);
+  host.querySelectorAll("[data-item]").forEach((input) => {
+    next.items[input.dataset.item] = input.type === "checkbox" ? input.checked : input.value;
   });
-  host.querySelectorAll("[data-strip-date]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      state.activeDate = button.dataset.stripDate;
-      await renderToday();
-    });
-  });
-  $("[data-active-date]", host).addEventListener("change", async (event) => {
-    state.activeDate = event.target.value;
-    await renderToday();
+  const normalized = normalizeDayRecord(next, state.startDate);
+  record.items = normalized.items;
+  record.completedPct = normalized.completedPct;
+  updateRing(ringEl, normalized.completedPct);
+
+  host.querySelectorAll("[data-item]").forEach((input) => {
+    if (input.type !== "checkbox") return;
+    const tile = input.closest(".supp-tile, .meal-tile, .check-row");
+    if (tile) tile.classList.toggle("checked", input.checked);
   });
 
-  function updateFromDom() {
-    const next = structuredClone(record);
-    host.querySelectorAll("[data-item]").forEach((input) => {
-      next.items[input.dataset.item] = input.type === "checkbox" ? input.checked : input.value;
-    });
-    const note = $("[data-day-note]", host);
-    if (note) next.note = note.value;
-    const normalized = normalizeDayRecord(next, state.startDate);
-    record.items = normalized.items;
-    record.note = normalized.note;
-    record.completedPct = normalized.completedPct;
-    $(".progress-badge strong", host).textContent = pctLabel(normalized.completedPct);
-    $(".progress-track span", host).style.width = `${Math.round(normalized.completedPct * 100)}%`;
-    saveTodayDebounced(normalized);
-  }
+  if (state.lastPct < 1 && normalized.completedPct === 1) haptic("complete-day");
+  else haptic("tick");
+  state.lastPct = normalized.completedPct;
 
-  function handleTodayChange(event) {
-    if (event.target.matches("[data-item], [data-day-note]")) updateFromDom();
-  }
-
-  function handleTodayInput(event) {
-    if (event.target.matches("[data-day-note], input[type='number']")) updateFromDom();
-  }
+  saveTodayDebounced(normalized);
 }
 
 async function saveDay(record) {
   try {
     await putOne("days", record);
-    if (record.completedPct === 1 && navigator.vibrate) navigator.vibrate(30);
   } catch (error) {
     toast(error.message, "bad");
   }
 }
 
-async function calculateStreak() {
-  const days = await getAll("days");
-  let streak = 0;
-  for (let date = state.today; ; date = addDays(date, -1)) {
-    const record = days.find((day) => day.date === date);
-    if (!record || Number(record.completedPct) < PROTOCOL.completionThreshold) break;
-    streak += 1;
-  }
-  return streak;
-}
-
-async function renderWeek(host = $("#view-settimana")) {
-  const weekNumber = state.selectedWeek;
-  const dates = getWeekDates(state.startDate, weekNumber);
-  const days = await getAll("days");
-  const dayRecords = dates.map((date) => days.find((day) => day.date === date) ?? buildDefaultDayRecord(date, state.startDate));
-  host.innerHTML = `
-    <div class="section-head">
-      <button class="button ghost" data-week-nav="-1">←</button>
-      <h2>Settimana ${weekNumber}/12</h2>
-      <button class="button ghost" data-week-nav="1">→</button>
-    </div>
-    ${MILESTONES[weekNumber] ? `<aside class="milestone">${escapeHtml(MILESTONES[weekNumber].text)}</aside>` : ""}
-    <section class="week-grid">${dayRecords.map(renderWeekDay).join("")}</section>
-  `;
-  host.querySelectorAll("[data-week-nav]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      state.selectedWeek = clampProtocolWeek(state.selectedWeek + Number(button.dataset.weekNav));
-      await renderWeek(host);
+async function showWeekPanel() {
+  openModal({
+    title: `Settimana ${state.selectedWeek}`,
+    body: `<div id="weekPanel"></div>`,
+    actions: `
+      <button class="button ghost" type="button" data-week-nav="-1">←</button>
+      <button class="button ghost" type="button" data-week-nav="1">→</button>
+      <button class="button primary" type="button" data-close-modal>Chiudi</button>
+    `,
+  });
+  await renderWeekPanel();
+  document.querySelectorAll("[data-week-nav]").forEach((b) => {
+    b.addEventListener("click", async () => {
+      state.selectedWeek = clampProtocolWeek(state.selectedWeek + Number(b.dataset.weekNav));
+      $(".modal-title").textContent = `Settimana ${state.selectedWeek}`;
+      await renderWeekPanel();
     });
   });
-  host.querySelectorAll("[data-date]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      state.activeDate = button.dataset.date;
+}
+
+async function renderWeekPanel() {
+  const host = $("#weekPanel");
+  const dates = getWeekDates(state.startDate, state.selectedWeek);
+  const days = await getAll("days");
+  const records = dates.map((date) => days.find((d) => d.date === date) ?? buildDefaultDayRecord(date, state.startDate));
+  host.innerHTML = `
+    ${MILESTONES[state.selectedWeek] ? `<aside class="milestone" style="margin-bottom:10px">${escapeHtml(MILESTONES[state.selectedWeek].text)}</aside>` : ""}
+    <div class="week-grid">
+      ${records.map((r) => {
+        const pct = Math.round(r.completedPct * 100);
+        const tone = pct >= 80 ? "good" : pct >= 50 ? "warn" : "bad";
+        const lbl = formatHumanDate(r.date).split(" ")[0];
+        return `
+          <button class="day-tile ${tone}" type="button" data-date="${r.date}">
+            <span class="lbl">${escapeHtml(lbl)} · ${escapeHtml(r.date.slice(8))}</span>
+            <span class="pct">${pct}%</span>
+            <span class="sub">${escapeHtml(DAY_TYPES[r.dayType].label)}</span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `;
+  host.querySelectorAll("[data-date]").forEach((b) => {
+    b.addEventListener("click", async () => {
+      state.activeDate = b.dataset.date;
       closeModal();
       await renderToday();
     });
   });
 }
 
-function renderWeekDay(record) {
-  const pct = Math.round(record.completedPct * 100);
-  const tone = pct >= 80 ? "good" : pct >= 50 ? "warn" : "bad";
-  return `
-    <button class="day-tile ${tone}" type="button" data-date="${record.date}">
-      <span>${escapeHtml(formatHumanDate(record.date).split(" ")[0])}</span>
-      <strong>${pct}%</strong>
-      <small>${escapeHtml(DAY_TYPES[record.dayType].label)}</small>
-    </button>
-  `;
-}
-
-async function saveWeek(record) {
-  try {
-    await putOne("weeks", record);
-    toast("Settimana salvata.");
-  } catch (error) {
-    toast(error.message, "bad");
-  }
-}
-
-async function renderLabs(host = $("#view-valori")) {
-  const labs = (await getAll("labs")).sort((a, b) => b.date.localeCompare(a.date));
-  host.innerHTML = `
-    <div class="section-head">
-      <h2>Valori clinici</h2>
-      <button class="button primary" data-action="new-lab">+ Nuovo</button>
-    </div>
-    <div class="stack">
-      ${
-        labs.length
-          ? labs.map(renderLabCard).join("")
-          : `<section class="empty">Nessun referto inserito.</section>`
-      }
-    </div>
-  `;
-  host.querySelectorAll("[data-edit-lab]").forEach((button) => {
-    button.addEventListener("click", () => showLabForm(labs.find((lab) => String(lab.id) === button.dataset.editLab)));
-  });
-}
-
-function renderLabCard(lab) {
-  const filled = LAB_FIELDS.filter((fieldDef) => lab.panel?.[fieldDef.key] !== "" && lab.panel?.[fieldDef.key] != null).slice(0, 6);
-  return `
-    <article class="card lab-card">
-      <div class="card-title"><span>${escapeHtml(lab.date)}</span><h3>${escapeHtml(lab.source || "Referto")}</h3></div>
-      <dl>${filled.map((fieldDef) => `<div><dt>${escapeHtml(fieldDef.label)}</dt><dd>${escapeHtml(lab.panel[fieldDef.key])} ${escapeHtml(fieldDef.unit)}</dd></div>`).join("")}</dl>
-      <button class="button ghost" type="button" data-edit-lab="${lab.id}">Modifica</button>
-    </article>
-  `;
-}
-
-function showLabForm(lab = null) {
-  const panel = lab?.panel ?? {};
-  openModal({
-    title: lab ? "Modifica referto" : "Nuovo referto",
-    body: `
-      <form id="labForm" class="form-grid">
-        ${field("Data", `<input name="date" type="date" value="${escapeHtml(lab?.date ?? state.today)}" required>`)}
-        ${field("Laboratorio", textInput("source", lab?.source ?? "", "placeholder='Nome libero'"))}
-        ${LAB_FIELDS.map((fieldDef) => field(fieldDef.label, `${numberInput(fieldDef.key, panel[fieldDef.key], "step='any'")}<small>${rangeLabel(fieldDef)}</small>`)).join("")}
-        ${field("Nota", textareaInput("note", lab?.note ?? ""))}
-      </form>
-    `,
-    actions: `
-      ${lab ? `<button class="button danger" type="button" id="deleteLab">Elimina</button>` : ""}
-      <button class="button ghost" type="button" data-close-modal>Annulla</button>
-      <button class="button primary" type="button" id="saveLab">Salva</button>
-    `,
-  });
-  $("#saveLab").addEventListener("click", async () => saveLab(lab?.id));
-  $("#deleteLab")?.addEventListener("click", async () => {
-    if (await confirmDialog("Elimina referto", "Questa operazione non si annulla.", "Elimina")) {
-      await deleteOne("labs", lab.id);
-      closeModal();
-      await renderLabs($("#panelHost") ?? $("#view-valori"));
-    }
-  });
-}
-
-function rangeLabel(fieldDef) {
-  if (fieldDef.refLow != null && fieldDef.refHigh != null) return `Range ${fieldDef.refLow}-${fieldDef.refHigh} ${fieldDef.unit}`;
-  if (fieldDef.refHigh != null) return `Target sotto ${fieldDef.refHigh} ${fieldDef.unit}`;
-  if (fieldDef.refLow != null) return `Target sopra ${fieldDef.refLow} ${fieldDef.unit}`;
-  return fieldDef.unit || "Campo libero";
-}
-
-async function saveLab(id = null) {
-  const form = $("#labForm");
-  const data = Object.fromEntries(new FormData(form));
-  const panel = {};
-  for (const fieldDef of LAB_FIELDS) panel[fieldDef.key] = optionalNumber(data[fieldDef.key]);
-  await putOne("labs", {
-    ...(id ? { id } : {}),
-    date: data.date,
-    source: data.source,
-    panel,
-    note: data.note,
-    updatedAt: Date.now(),
-  });
-  closeModal();
-  await renderLabs();
-  toast("Referto salvato.");
-}
-
-async function renderChartsView(host = $("#view-grafici")) {
-  const [weeks, labs] = await Promise.all([getAll("weeks"), getAll("labs")]);
-  host.innerHTML = `
-    <div class="section-head"><h2>Grafici</h2></div>
-    <section class="card">
-      <label class="field"><span>Metrica</span>
-        <select id="metricSelect">${metricOptions().map((metric) => `<option value="${metric.key}" ${metric.key === state.selectedMetric ? "selected" : ""}>${escapeHtml(metric.label)}</option>`).join("")}</select>
-      </label>
-      <div class="chart-wrap">
-        <canvas id="mainChart" width="800" height="360"></canvas>
-        <p class="chart-fallback" hidden>Grafico non disponibile offline finché Chart.js non è stato caricato almeno una volta.</p>
-      </div>
-    </section>
-  `;
-  $("#metricSelect", host).addEventListener("change", async (event) => {
-    state.selectedMetric = event.target.value;
-    await renderChartsView(host);
-  });
-  renderChart($("#mainChart", host), state.selectedMetric, weeks, labs);
-}
-
-async function renderReport(host = $("#view-report")) {
-  const weekNumber = state.selectedWeek;
-  const dates = getWeekDates(state.startDate, weekNumber);
-  const [days, week, previousWeek, labs] = await Promise.all([
+async function showReportPanel() {
+  const dates = getWeekDates(state.startDate, state.selectedWeek);
+  const [days, week, previousWeek] = await Promise.all([
     getAll("days"),
-    getOne("weeks", weekNumber),
-    getOne("weeks", weekNumber - 1),
-    getAll("labs"),
+    getOne("weeks", state.selectedWeek),
+    getOne("weeks", state.selectedWeek - 1),
   ]);
-  const dayRecords = dates.map((date) => days.find((day) => day.date === date) ?? buildDefaultDayRecord(date, state.startDate));
-  const labsInWeek = labs.filter((lab) => lab.date >= dates[0] && lab.date <= dates[6]).sort((a, b) => a.date.localeCompare(b.date));
-  const report = buildWeeklyReport({ weekNumber, days: dayRecords, week: week ?? {}, previousWeek: previousWeek ?? {}, labsInWeek });
-  host.innerHTML = `
-    <div class="section-head">
-      <button class="button ghost" data-report-week="-1">←</button>
-      <h2>Report settimana ${weekNumber}</h2>
-      <button class="button ghost" data-report-week="1">→</button>
-    </div>
-    <section class="card report-card">
-      <pre>${escapeHtml(report.text)}</pre>
-      <div class="button-row">
-        <button class="button primary" data-action="print">Stampa / PDF</button>
-        <button class="button ghost" data-action="export">Backup JSON</button>
-        <button class="button ghost" data-action="import">Ripristina</button>
-      </div>
-    </section>
-  `;
-  host.querySelectorAll("[data-report-week]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      state.selectedWeek = clampProtocolWeek(state.selectedWeek + Number(button.dataset.reportWeek));
-      await renderReport(host);
-    });
+  const dayRecords = dates.map((date) => days.find((d) => d.date === date) ?? buildDefaultDayRecord(date, state.startDate));
+  const report = buildWeeklyReport({
+    weekNumber: state.selectedWeek,
+    days: dayRecords,
+    week: week ?? {},
+    previousWeek: previousWeek ?? {},
+    labsInWeek: [],
+  });
+  openModal({
+    title: `Report settimana ${state.selectedWeek}`,
+    body: `<pre class="report-pre">${escapeHtml(report.text)}</pre>`,
+    actions: `
+      <button class="button ghost" type="button" data-action="export">Backup JSON</button>
+      <button class="button ghost" type="button" data-action="import">Ripristina</button>
+      <button class="button ghost" type="button" data-action="print">Stampa</button>
+      <button class="button primary" type="button" data-close-modal>Chiudi</button>
+    `,
   });
 }
 
@@ -585,7 +489,7 @@ function showManifesto() {
   openModal({
     title: "Quando voglio mollare",
     body: `<div class="manifesto-text">${escapeHtml(MANIFESTO).replaceAll("\n", "<br>")}</div>`,
-    actions: `<button class="button primary" type="button" data-close-modal>Chiudi, continuo</button>`,
+    actions: `<button class="button primary" type="button" data-close-modal>Continuo</button>`,
   });
 }
 
@@ -598,24 +502,18 @@ async function exportBackup() {
 async function handleImport(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const confirmed = await confirmDialog("Ripristina backup", "Sostituisco tutti i dati locali con il file JSON selezionato?", "Ripristina");
+  const confirmed = await confirmDialog("Ripristina backup", "Sostituisco tutti i dati locali con il file JSON?", "Ripristina");
   if (!confirmed) return;
   try {
     const payload = JSON.parse(await file.text());
     await importAll(payload, { replace: true });
     toast("Backup ripristinato.");
-    await render();
+    await renderToday();
   } catch (error) {
     toast(error.message, "bad");
   } finally {
     event.target.value = "";
   }
-}
-
-function optionalNumber(value) {
-  if (value === "" || value === null || value === undefined) return "";
-  const num = Number(value);
-  return Number.isFinite(num) ? num : "";
 }
 
 async function registerServiceWorker() {
