@@ -1,5 +1,18 @@
 import { MILESTONES } from "./protocol.js";
-import { summarizeWeek } from "./metrics.js";
+
+function average(values) {
+  const nums = values.map(Number).filter(Number.isFinite);
+  if (!nums.length) return null;
+  return Math.round((nums.reduce((sum, v) => sum + v, 0) / nums.length) * 100) / 100;
+}
+
+function summarizeWeek(days = [], week = {}) {
+  const completedDays = days.filter((day) => Number(day.completedPct) >= 0.8).length;
+  const avgAdherence = average(days.map((day) => day.completedPct)) ?? 0;
+  const strength = days.filter((day) => ["push", "pull", "legs"].includes(day.dayType) && day.items?.training === true).length;
+  const muaythai = days.filter((day) => day.dayType === "muaythai" && day.items?.training === true).length;
+  return { avgAdherence, completedDays, strength, muaythai, avgSleepFromDays: average(days.map((day) => day.items?.sleep)), week };
+}
 
 function delta(current, previous, unit = "") {
   const now = Number(current);
