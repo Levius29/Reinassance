@@ -65,14 +65,19 @@ button { cursor: pointer; background: transparent; border: 0; color: inherit; }
   min-height: 100svh;
   overflow: hidden;
   padding: calc(10px + env(safe-area-inset-top)) 14px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 main {
-  height: 100%;
+  flex: 1 1 0;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   margin: 0 auto;
   max-width: 520px;
   overflow: hidden;
+  width: 100%;
 }
 
 .view {
@@ -85,7 +90,10 @@ main {
 }
 
 #view-oggi {
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  height: auto;
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
@@ -271,6 +279,7 @@ main {
 
 /* --- DAILY BOARD (4 SLIDES) --- */
 .daily-board {
+  flex: 1 1 0;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -291,6 +300,11 @@ main {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 0 2px;
+  display: flex;
+  flex-direction: column;
+}
+.slide > .card {
+  min-height: 100%;
 }
 .slide::-webkit-scrollbar { display: none; }
 
