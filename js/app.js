@@ -13,13 +13,13 @@ import {
   getWeekDates,
   parseDate,
   todayString,
-} from "./protocol.js";
+} from "./protocol.js?v=18";
 import {
   buildDefaultDayRecord,
   getChecklistItemsForDayType,
   groupChecklistItems,
   normalizeDayRecord,
-} from "./checklist.js";
+} from "./checklist.js?v=18";
 import {
   downloadSnapshot,
   exportAll,
@@ -30,10 +30,10 @@ import {
   putOne,
   setSetting,
   getSetting,
-} from "./db.js";
-import { mergeDietForDate } from "./diet.js";
-import { buildWeeklyReport } from "./report.js";
-import { openMealPicker } from "./meal-picker.js";
+} from "./db.js?v=18";
+import { calculateDietMacroStatus, mergeDietForDate } from "./diet.js?v=18";
+import { buildWeeklyReport } from "./report.js?v=18";
+import { openMealPicker } from "./meal-picker.js?v=18";
 import {
   $,
   closeModal,
@@ -51,7 +51,7 @@ import {
   textInput,
   toast,
   updateRing,
-} from "./ui.js";
+} from "./ui.js?v=18";
 
 const SLIDES = [
   { id: "training", label: "Allenamento" },
@@ -168,9 +168,9 @@ async function renderToday() {
 
     <div class="slide-header">
       <div class="slide-dots">
-        ${SLIDES.map((_, i) => `<button class="slide-dot ${i === 0 ? "active" : ""}" data-slide-to="${i}" aria-label="Slide ${i+1}"></button>`).join("")}
+        ${SLIDES.map((_, i) => `<button class="slide-dot ${i === state.activeSlide ? "active" : ""}" data-slide-to="${i}" aria-label="Slide ${i+1}"></button>`).join("")}
       </div>
-      <div class="slide-label" id="slideLabel">${escapeHtml(SLIDES[0].label)}</div>
+      <div class="slide-label" id="slideLabel">${escapeHtml(SLIDES[state.activeSlide]?.label ?? SLIDES[0].label)}</div>
     </div>
 
     <div class="daily-board" id="board">
@@ -187,6 +187,7 @@ async function renderToday() {
   `;
 
   bindTodayEvents(record, overrides);
+  restoreActiveSlide(host);
 }
 
 function renderWeekStrip(record) {
@@ -258,10 +259,12 @@ function renderNutritionSlide(record, overrides) {
   const weekday = parseDate(record.date).getUTCDay();
   const plan = DIET_PLAN[weekday] ?? DIET_PLAN[0];
   const meals = mergeDietForDate(record.date, plan.meals, overrides);
+  const macroStatus = calculateDietMacroStatus(meals);
   return `
     <article class="card">
       <div class="card-eyebrow">${escapeHtml(plan.label)}</div>
       <div class="card-title"><h3>Alimentazione</h3><span class="meta">${meals.length} pasti</span></div>
+      ${renderMacroStatus(macroStatus)}
       <div class="tile-grid">
         ${meals.map((meal) => {
           const checked = record.items[meal.id] === true;
@@ -276,8 +279,23 @@ function renderNutritionSlide(record, overrides) {
           `;
         }).join("")}
       </div>
-      <p style="margin: 10px 4px 0; font-size: 11px; color: var(--text-mute);">Tieni premuto un pasto per vedere le varianti equivalenti.</p>
+      <p style="margin: 10px 4px 0; font-size: 11px; color: var(--text-mute);">Tieni premuto un pasto per vedere le varianti.</p>
     </article>
+  `;
+}
+
+function renderMacroStatus(status) {
+  if (!status.verified) {
+    return "";
+  }
+  return `
+    <div class="macro-box">
+      ${Object.entries(status.targets).map(([key, target]) => `
+        <span class="macro-pill ${status.inTarget[key] ? "ok" : "warn"}">
+          <b>${escapeHtml(target.label)}</b> ${status.totals[key]}${escapeHtml(target.unit)}
+        </span>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -369,6 +387,16 @@ function setActiveSlide(i, labelEl, host) {
     labelEl.textContent = SLIDES[i].label;
     labelEl.classList.remove("fading");
   }, 150);
+}
+
+function restoreActiveSlide(host) {
+  const board = $("#board", host);
+  const slideLabel = $("#slideLabel", host);
+  const safeSlide = Math.min(Math.max(state.activeSlide, 0), SLIDES.length - 1);
+  state.activeSlide = safeSlide;
+  host.querySelectorAll(".slide-dot").forEach((d, idx) => d.classList.toggle("active", idx === safeSlide));
+  if (slideLabel) slideLabel.textContent = SLIDES[safeSlide].label;
+  requestAnimationFrame(() => board.scrollTo({ left: safeSlide * board.clientWidth, behavior: "instant" }));
 }
 
 function slideTo(board, i) {

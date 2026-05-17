@@ -1,16 +1,29 @@
-import { $, $$, closeModal, escapeHtml, openModal, toast } from "./ui.js";
-import { buildOverrideId } from "./diet.js";
-import { deleteOne, putOne } from "./db.js";
+import { $, $$, closeModal, escapeHtml, openModal, toast } from "./ui.js?v=18";
+import { buildOverrideId } from "./diet.js?v=18";
+import { deleteOne, putOne } from "./db.js?v=18";
+
+function renderMacros(macros) {
+  if (!macros) return "";
+  return `
+    <div class="alt-macros">
+      <span>${macros.kcal} kcal</span>
+      <span>P ${macros.protein}g</span>
+      <span>F ${macros.fat}g</span>
+      <span>C ${macros.carbs}g</span>
+    </div>
+  `;
+}
 
 export async function openMealPicker({ date, meal, onSaved }) {
   const overrideId = buildOverrideId(date, meal.id);
   const alternatives = meal.alternatives ?? [meal.items ?? []];
+  const macroAlternatives = meal.macroAlternatives ?? alternatives.map(() => meal.macros ?? null);
   const currentIndex = meal.selectedIndex ?? 0;
 
   openModal({
     title: `${meal.label} · ${meal.time}`,
     body: `
-      <p>Scegli una variante. Tutte hanno macronutrienti equivalenti per questo pasto.</p>
+      <p>Scegli una variante. Tutte restano nel target giornaliero: 2100 kcal · P 180g · F 50-60g · C 200-250g.</p>
       <div class="alt-list" id="altList">
         ${alternatives.map((items, i) => `
           <button class="alt-card ${i === currentIndex ? "selected" : ""}" type="button" data-alt-index="${i}">
@@ -18,6 +31,7 @@ export async function openMealPicker({ date, meal, onSaved }) {
               <span class="alt-badge">${String.fromCharCode(65 + i)}</span>
               ${i === currentIndex ? `<span class="alt-tag">Selezionata</span>` : ""}
             </div>
+            ${renderMacros(macroAlternatives[i])}
             <ul class="alt-items">
               ${items.map((it) => `<li>${escapeHtml(it)}</li>`).join("")}
             </ul>
