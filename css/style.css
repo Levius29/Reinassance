@@ -94,7 +94,10 @@ main {
   flex-direction: column;
   flex: 1 1 0;
   height: auto;
-  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  padding-bottom: 64px;
+}
+@media (display-mode: standalone) {
+  #view-oggi { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* --- COCKPIT HERO --- */
@@ -544,7 +547,7 @@ main {
   right: auto;
   bottom: 0;
   z-index: 20;
-  width: min(492px, calc(100vw - 28px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  width: min(492px, calc(100vw - 28px));
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -553,11 +556,9 @@ main {
   background: var(--ink);
   transform: translateX(-50%);
 }
-/* Riempie il safe area sotto i bottoni (home indicator iPhone PWA) */
-.panel-row::after {
-  content: '';
-  grid-column: 1 / -1;
-  height: env(safe-area-inset-bottom, 0px);
+/* In PWA standalone: aggiungi safe area solo per home indicator */
+@media (display-mode: standalone) {
+  .panel-row { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 .panel-button {
   min-height: 48px;
