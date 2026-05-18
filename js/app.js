@@ -179,17 +179,19 @@ async function renderToday() {
       <section class="slide" data-slide-id="nutrition">${renderNutritionSlide(record, overrides)}</section>
       <section class="slide" data-slide-id="habits">${renderHabitsSlide(record, groups.habits)}</section>
     </div>
-
-    <div class="panel-row">
-      <button class="panel-button" type="button" data-action="panel-week">Settimana</button>
-      <button class="panel-button" type="button" data-action="panel-report">Report</button>
-    </div>
   `;
 
-  // Rimuovi panel-row precedente da main, poi sposta quello nuovo fuori da view-oggi
-  host.parentElement.querySelector(".panel-row")?.remove();
-  const panelEl = host.querySelector(".panel-row");
-  if (panelEl) host.parentElement.appendChild(panelEl);
+  // Crea panel-row una sola volta come figlio diretto di main
+  const main = host.parentElement;
+  if (!main.querySelector(":scope > .panel-row")) {
+    const panelEl = document.createElement("div");
+    panelEl.className = "panel-row";
+    panelEl.innerHTML = `
+      <button class="panel-button" type="button" data-action="panel-week">Settimana</button>
+      <button class="panel-button" type="button" data-action="panel-report">Report</button>
+    `;
+    main.appendChild(panelEl);
+  }
 
   bindTodayEvents(record, overrides);
   restoreActiveSlide(host);

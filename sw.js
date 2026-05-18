@@ -1,4 +1,4 @@
-const CACHE = "protocol-v26";
+const CACHE = "protocol-v27";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
