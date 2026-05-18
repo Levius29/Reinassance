@@ -546,6 +546,11 @@ main {
   background: var(--ink);
   flex: 0 0 auto;
 }
+@media (display-mode: standalone) {
+  .panel-row {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+}
 .panel-button {
   min-height: 48px;
   border-radius: 999px;
