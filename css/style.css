@@ -93,11 +93,8 @@ main {
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
+  min-height: 0;
   height: auto;
-  padding-bottom: 64px;
-}
-@media (display-mode: standalone) {
-  #view-oggi { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* --- COCKPIT HERO --- */
@@ -302,7 +299,7 @@ main {
   overflow-x: hidden;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 0 2px;
+  padding: 0 2px 16px;
 }
 .slide::-webkit-scrollbar { display: none; }
 
@@ -542,21 +539,14 @@ main {
 
 /* --- PANEL ROW --- */
 .panel-row {
-  position: fixed;
-  left: 50%;
-  right: auto;
-  bottom: 0;
-  z-index: 20;
-  width: min(492px, calc(100vw - 28px));
-  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 8px 0 0;
+  padding: 8px 0;
   background: var(--ink);
-  transform: translateX(-50%);
+  flex: 0 0 auto;
 }
-/* In PWA standalone: aggiungi safe area solo per home indicator */
+/* In PWA standalone: safe area per home indicator iPhone */
 @media (display-mode: standalone) {
   .panel-row { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
