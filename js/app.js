@@ -186,7 +186,8 @@ async function renderToday() {
     </div>
   `;
 
-  // Sposta panel-row fuori da view-oggi (dentro main) così non è vincolato da overflow:hidden
+  // Rimuovi panel-row precedente da main, poi sposta quello nuovo fuori da view-oggi
+  host.parentElement.querySelector(".panel-row")?.remove();
   const panelEl = host.querySelector(".panel-row");
   if (panelEl) host.parentElement.appendChild(panelEl);
 
