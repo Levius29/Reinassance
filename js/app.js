@@ -186,6 +186,10 @@ async function renderToday() {
     </div>
   `;
 
+  // Sposta panel-row fuori da view-oggi (dentro main) così non è vincolato da overflow:hidden
+  const panelEl = host.querySelector(".panel-row");
+  if (panelEl) host.parentElement.appendChild(panelEl);
+
   bindTodayEvents(record, overrides);
   restoreActiveSlide(host);
 }
