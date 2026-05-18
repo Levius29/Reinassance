@@ -546,10 +546,6 @@ main {
   background: var(--ink);
   flex: 0 0 auto;
 }
-/* In PWA standalone: safe area per home indicator iPhone */
-@media (display-mode: standalone) {
-  .panel-row { padding-bottom: env(safe-area-inset-bottom, 0px); }
-}
 .panel-button {
   min-height: 48px;
   border-radius: 999px;
