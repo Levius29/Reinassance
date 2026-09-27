@@ -17,120 +17,258 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#E9EFEC; --surface:#F7FAF8; --ink:#17282B; --muted:#56696A;
-  --line:#C9D5D0; --accent:#B8891A; --accent-ink:#1A1405;
+  --bg:#E9EFEC; --surface:#F7FAF8; --surface-2:#DFE8E4; --ink:#17282B; --muted:#56696A;
+  --line:#C9D5D0; --accent:#B8891A; --accent-ink:#1A1405; --accent-soft:#F1E3BE;
   --done:#2F6B55; --min:#8FB3A0; --skip:#C4574A; --empty:#D6DFDB;
+  --r:18px; --ease:cubic-bezier(.2,.8,.2,1);
   box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0F1D1F; --surface:#172A2C; --ink:#E4ECE8; --muted:#95A9A5;
-    --line:#2A4043; --accent:#D9A93A; --accent-ink:#1A1405;
+    --bg:#0F1D1F; --surface:#172A2C; --surface-2:#1E3437; --ink:#E4ECE8; --muted:#95A9A5;
+    --line:#2A4043; --accent:#D9A93A; --accent-ink:#1A1405; --accent-soft:#3A3219;
     --done:#5BAE8C; --min:#3E6D5B; --skip:#D9705F; --empty:#22383A;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0F1D1F; --surface:#172A2C; --ink:#E4ECE8; --muted:#95A9A5;
-  --line:#2A4043; --accent:#D9A93A; --accent-ink:#1A1405;
+  --bg:#0F1D1F; --surface:#172A2C; --surface-2:#1E3437; --ink:#E4ECE8; --muted:#95A9A5;
+  --line:#2A4043; --accent:#D9A93A; --accent-ink:#1A1405; --accent-soft:#3A3219;
   --done:#5BAE8C; --min:#3E6D5B; --skip:#D9705F; --empty:#22383A;
 }
 *,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);
   font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
-  font-size:17px;line-height:1.5}
-main{max-width:520px;margin:0 auto;padding:20px 18px 48px}
-h1,h2,.big{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif}
-.mantra{font-size:clamp(28px,8vw,40px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:8px 0 6px}
-.sub{color:var(--muted);margin:0 0 22px}
-.day{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
-.day .big{font-size:64px;font-weight:800;line-height:1;color:var(--accent)}
-.day span{color:var(--muted)}
-.alert{background:var(--skip);color:#fff;border-radius:10px;padding:10px 14px;margin:10px 0 0;font-weight:700}
-.alert[hidden]{display:none}
-section{margin-top:28px}
-h2{font-size:21px;font-weight:700;margin:0 0 10px}
-.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.choices button{font:inherit;font-weight:700;padding:14px 6px;border-radius:12px;border:2px solid var(--line);
-  background:var(--surface);color:var(--ink);cursor:pointer}
+  font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+main{max-width:520px;margin:0 auto;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 16px calc(env(safe-area-inset-bottom,0px) + 48px)}
+h1,h2,.display{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+.date{color:var(--muted);font-size:15px;margin:0}
+.date::first-letter{text-transform:uppercase}
+.mantra{font-size:clamp(30px,8.4vw,42px);font-weight:800;line-height:1.02;letter-spacing:-.025em;margin:6px 0 14px}
+.dayline{display:flex;align-items:baseline;gap:10px}
+.dayline .big{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:56px;font-weight:800;line-height:.9;color:var(--accent)}
+.dayline span:last-child{color:var(--muted)}
+.alert{background:var(--skip);color:#fff;border-radius:12px;padding:11px 14px;margin:14px 0 0;font-weight:700}
+
+/* today card */
+.card{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:16px;margin-top:18px}
+.card h2{font-size:21px;margin:0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-weight:700;font-size:18px;
+  transition:transform .12s var(--ease),filter .12s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);margin-top:14px}
+.btn.secondary{background:transparent;border:2px solid var(--line);color:var(--ink);margin-top:8px;font-size:16px;padding:13px}
+.btn small{display:block;font-weight:400;font-size:14px;opacity:.8}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font-size:20px;line-height:1}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper output{min-width:1.5ch;text-align:center;font-weight:700;font-size:20px}
+.muted{color:var(--muted)}
+.done-box{display:flex;align-items:center;gap:14px;margin-top:12px}
+.check{flex:none;width:52px;height:52px;border-radius:50%;background:var(--done);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:800}
+.check.min{background:var(--min);color:var(--ink)}
+.done-box strong{display:block;font-size:19px}
+.linkbtn{background:none;border:none;padding:6px 0;color:var(--muted);text-decoration:underline;font-size:15px}
+
+/* manual */
+.manual{margin-top:14px}
+.manual summary{color:var(--muted);font-size:15px;cursor:pointer;list-style:none;padding:4px 0}
+.manual summary::-webkit-details-marker{display:none}
+.manual summary::before{content:"+ "}
+.manual[open] summary::before{content:"– "}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.choices button{font-weight:700;padding:12px 6px;border-radius:12px;border:2px solid var(--line);background:var(--surface)}
 .choices button[aria-pressed="true"][data-s="fatto"]{background:var(--done);border-color:var(--done);color:#fff}
 .choices button[aria-pressed="true"][data-s="minimo"]{background:var(--min);border-color:var(--min);color:var(--ink)}
 .choices button[aria-pressed="true"][data-s="saltato"]{background:var(--skip);border-color:var(--skip);color:#fff}
-label.note{display:block;margin-top:12px;color:var(--muted);font-size:15px}
-input[type=text]{width:100%;font:inherit;padding:12px;border-radius:10px;border:2px solid var(--line);
+label.field{display:block;margin-top:12px;color:var(--muted);font-size:15px}
+input[type=text],input[type=time],select{width:100%;font:inherit;padding:12px;border-radius:10px;border:2px solid var(--line);
   background:var(--surface);color:var(--ink);margin-top:4px}
+
+/* sections */
+section{margin-top:32px}
+section > h2{font-size:21px;font-weight:700;margin:0 0 10px}
 ol.routine{list-style:none;padding:0;margin:0;border-top:2px solid var(--line)}
-ol.routine li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:14px 0;border-bottom:2px solid var(--line)}
+ol.routine li{padding:14px 0;border-bottom:2px solid var(--line)}
+.ex-head{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center}
 .ex{font-weight:700}
+.target{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:700;font-size:15px}
 .lvl{color:var(--muted);font-size:15px}
-.steps{grid-row:1 / span 2;grid-column:2;display:flex;align-items:center;gap:6px}
-.steps button{font:inherit;font-size:20px;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);
-  background:var(--surface);color:var(--ink);cursor:pointer}
+.steps{grid-row:1 / span 3;grid-column:2;display:flex;align-items:center;gap:6px}
+.steps button{font-size:20px;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--surface);line-height:1}
 .steps button:disabled{opacity:.35;cursor:default}
+.steps button.ready{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .pips{display:flex;gap:4px;margin-top:6px}
 .pips i{width:18px;height:6px;border-radius:3px;background:var(--empty)}
 .pips i.on{background:var(--accent)}
+.badge{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;background:var(--accent-soft);color:var(--ink);padding:3px 9px;border-radius:99px}
+.cue{margin-top:6px}
+.cue summary{font-size:14px;color:var(--muted);cursor:pointer;list-style:none;display:inline}
+.cue summary::-webkit-details-marker{display:none}
+.cue p{margin:6px 0 0;font-size:15px}
 .hint{color:var(--muted);font-size:15px;margin:10px 0 0}
+
+/* chain */
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;color:var(--muted);font-size:12px;text-align:center}
 .chain{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.chain div{aspect-ratio:1;border-radius:8px;background:var(--empty);position:relative}
+.chain div{aspect-ratio:1;border-radius:8px;background:var(--empty)}
+.chain div.pre,.chain div.future{background:transparent;border:2px dashed var(--line)}
+.chain div.future{opacity:.5}
 .chain div.fatto{background:var(--done)}
 .chain div.minimo{background:var(--min)}
 .chain div.saltato{background:var(--skip)}
 .chain div.today{outline:3px solid var(--accent);outline-offset:1px}
 .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;color:var(--muted);font-size:14px}
 .legend b{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.stats{display:flex;gap:24px;margin-top:14px}
-.stats div{font-size:14px;color:var(--muted)}
-.stats strong{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:30px;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.stats div{font-size:13px;color:var(--muted);line-height:1.25}
+.stats strong{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
+.goal{margin-top:16px}
+.goal .row{font-size:15px}
+.meter{height:8px;border-radius:4px;background:var(--empty);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .4s var(--ease)}
+
 .rules{padding-left:20px;margin:0}
 .rules li{margin:4px 0}
-.copy{font:inherit;font-weight:700;width:100%;margin-top:12px;padding:14px;border-radius:12px;border:none;
-  background:var(--accent);color:var(--accent-ink);cursor:pointer}
+
+/* settings */
+.set{border-top:2px solid var(--line)}
+.set > summary{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:21px;font-weight:700;padding:14px 0;cursor:pointer;list-style:none}
+.set > summary::-webkit-details-marker{display:none}
+.set > summary::after{content:"＋";float:right;color:var(--muted)}
+.set[open] > summary::after{content:"－"}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.set h3{font-size:16px;margin:18px 0 4px}
+.set p{margin:6px 0;font-size:15px}
+.btn.small{font-size:16px;padding:12px;margin-top:10px}
+.copy{background:var(--accent);color:var(--accent-ink)}
 pre{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:12px;
   font-size:14px;overflow-x:auto;margin:10px 0 0}
 .save{font-size:13px;color:var(--muted);margin-top:28px}
-button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* guided run */
+.run{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.run-top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:520px;width:100%;margin:0 auto}
+.ghost{background:none;border:2px solid var(--line);border-radius:99px;padding:8px 14px;font-size:15px;font-weight:700}
+.ghost[aria-pressed="false"]{opacity:.5}
+.ghost.warn{border-color:var(--skip);color:var(--skip)}
+.run-meta{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--empty);border-radius:3px;margin:12px auto 0;overflow:hidden;max-width:520px;width:100%}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s var(--ease)}
+.run-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;max-width:520px;width:100%;margin:0 auto;min-height:0}
+.run-kicker{margin:0;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:14px}
+.run-title{font-size:clamp(30px,9vw,44px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:6px 0 4px}
+.run-level{margin:0;color:var(--muted)}
+.ring{position:relative;width:min(62vw,260px);aspect-ratio:1;margin:22px 0 14px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .trk{stroke:var(--empty)}
+.ring .val{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .2s linear}
+.ring.rest .val{stroke:var(--done)}
+.ring.lead .val{stroke:var(--muted)}
+.ring-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(46px,15vw,72px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ring-unit{color:var(--muted);font-size:15px;margin-top:4px}
+.run-cue{margin:0;max-width:34ch;font-size:16px}
+.run-next{text-align:center;color:var(--muted);font-size:15px;margin:10px 0}
+.run-actions{display:grid;grid-template-columns:64px 1fr 64px;gap:10px;max-width:520px;width:100%;margin:0 auto}
+.run-actions .side{border:2px solid var(--line);background:var(--surface);border-radius:16px;font-size:26px;line-height:1}
+.run-actions .btn{margin:0;padding:20px;font-size:20px}
+.plus{margin-top:8px;background:none;border:none;color:var(--muted);text-decoration:underline;font-size:15px}
+
+/* summary */
+.sum{flex:1;overflow:auto;max-width:520px;width:100%;margin:0 auto;padding-top:16px}
+.sum h2{font-size:clamp(36px,11vw,52px);font-weight:800;margin:0;letter-spacing:-.02em;line-height:1}
+.sum .lead{color:var(--muted);margin:6px 0 18px}
+.feel{padding:12px 0;border-bottom:2px solid var(--line)}
+.feel .ex{margin-bottom:8px}
+.feel .choices{margin-top:0}
+.feel .choices button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translate(-50%,20px);opacity:0;
+  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:99px;font-weight:700;z-index:20;
+  transition:opacity .2s,transform .2s var(--ease);pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main>
+  <p class="date" id="date"></p>
   <p class="mantra">Sono uno che si allena ogni mattina.</p>
-  <p class="sub">Sveglia, acqua, routine. Anche minima conta.</p>
+  <div class="dayline"><span class="big num" id="dayNum">1</span><span>giorno</span></div>
+  <p class="alert" id="alert" hidden>Ieri niente. Oggi non si salta: anche solo il minimo.</p>
 
-  <div class="day"><span class="big" id="dayNum">1</span><span id="dayLabel">giorno</span></div>
-  <p class="alert" id="alert" hidden>Ieri saltato. Oggi si fa, anche minimo.</p>
-
-  <section>
-    <h2>Oggi</h2>
-    <div class="choices" role="group" aria-label="Com'è andata oggi">
-      <button data-s="fatto" aria-pressed="false">Fatto</button>
-      <button data-s="minimo" aria-pressed="false">Minimo</button>
-      <button data-s="saltato" aria-pressed="false">Saltato</button>
+  <div class="card" id="todayCard">
+    <div id="todoBox">
+      <div class="row">
+        <h2>Oggi</h2>
+        <div class="stepper" aria-label="Giri">
+          <span class="muted">Giri</span>
+          <button id="rDown" aria-label="Un giro in meno">−</button>
+          <output id="rounds" class="num">2</output>
+          <button id="rUp" aria-label="Un giro in più">+</button>
+        </div>
+      </div>
+      <button class="btn primary" id="startFull">Inizia<small id="estFull"></small></button>
+      <button class="btn secondary" id="startMin">Versione minima<small id="estMin"></small></button>
     </div>
-    <label class="note">Cosa ha ostacolato (facoltativo)
-      <input type="text" id="note" autocomplete="off">
-    </label>
-  </section>
+    <div id="doneBox" hidden>
+      <h2>Oggi</h2>
+      <div class="done-box">
+        <div class="check" id="doneIcon">✓</div>
+        <div><strong id="doneTitle">Fatto</strong><span class="muted" id="doneSub"></span></div>
+      </div>
+      <button class="linkbtn" id="again">Rifalla</button>
+    </div>
+    <details class="manual" id="manual">
+      <summary>Segna a mano</summary>
+      <div class="choices" role="group" aria-label="Com'è andata oggi">
+        <button data-s="fatto" aria-pressed="false">Fatto</button>
+        <button data-s="minimo" aria-pressed="false">Minimo</button>
+        <button data-s="saltato" aria-pressed="false">Saltato</button>
+      </div>
+      <label class="field">Cosa ha ostacolato (facoltativo)
+        <input type="text" id="note" autocomplete="off">
+      </label>
+    </details>
+  </div>
 
   <section>
     <h2>Routine</h2>
     <ol class="routine" id="routine"></ol>
-    <p class="hint">Sali di livello quando il movimento ti viene fluido e pulito. Nel dubbio, resta dove sei.</p>
+    <p class="hint">Dopo ogni sessione dici com'è andata. Due volte "facile" di fila e ti propongo di salire. Nel dubbio, resta dove sei.</p>
   </section>
 
   <section>
     <h2>La catena</h2>
-    <div class="chain" id="chain" aria-label="Ultime quattro settimane"></div>
+    <div class="wk" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span></div>
+    <div class="chain" id="chain" aria-label="Ultime cinque settimane"></div>
     <div class="legend">
       <span><b style="background:var(--done)"></b>Fatto</span>
       <span><b style="background:var(--min)"></b>Minimo</span>
       <span><b style="background:var(--skip)"></b>Saltato</span>
     </div>
     <div class="stats">
-      <div><strong id="streak">0</strong>catena attuale</div>
+      <div><strong id="streak">0</strong>catena</div>
+      <div><strong id="best">0</strong>record</div>
       <div><strong id="total">0</strong>giorni fatti</div>
+      <div><strong id="pct">–</strong>ultime 4 sett.</div>
+    </div>
+    <div class="goal">
+      <div class="row"><span id="goalLabel">Prossimo traguardo</span><span class="muted num" id="goalNum"></span></div>
+      <div class="meter"><i id="goalBar"></i></div>
     </div>
   </section>
 
@@ -138,145 +276,602 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     <h2>Regole</h2>
     <ul class="rules">
       <li>Mai saltare due giorni di fila.</li>
-      <li>In ritardo o stanco: versione minima, un giro lento.</li>
+      <li>In ritardo o stanco: versione minima, un giro.</li>
       <li>Una ricaduta è un dato, non un verdetto.</li>
       <li>La sera prima: spazio libero, asciugamano pronto.</li>
     </ul>
   </section>
 
   <section>
+    <details class="set">
+      <summary>Impostazioni</summary>
+      <div class="grid2">
+        <label class="field">Pausa tra esercizi
+          <select id="restEx"><option value="10">10 s</option><option value="15">15 s</option><option value="20">20 s</option><option value="30">30 s</option></select>
+        </label>
+        <label class="field">Pausa tra giri
+          <select id="restRound"><option value="30">30 s</option><option value="45">45 s</option><option value="60">60 s</option><option value="90">90 s</option></select>
+        </label>
+      </div>
+      <label class="toggle"><span>Voce guida</span><input type="checkbox" id="optVoice"></label>
+      <label class="toggle"><span>Suoni</span><input type="checkbox" id="optSound"></label>
+      <label class="toggle"><span>Riscaldamento (60 s)</span><input type="checkbox" id="optWarm"></label>
+
+      <h3>Promemoria</h3>
+      <p class="muted">Un evento ogni giorno nel Calendario dell'iPhone, con avviso.</p>
+      <label class="field">Ora
+        <input type="time" id="remTime" value="06:05">
+      </label>
+      <button class="btn secondary small" id="icsBtn">Aggiungi al Calendario</button>
+      <p class="muted">Ancora meglio: rinomina la sveglia in «Acqua → Mantra». Il gesto parte dalla sveglia.</p>
+
+      <h3>Backup</h3>
+      <p class="muted">I dati stanno solo su questo telefono.</p>
+      <div class="grid2">
+        <button class="btn secondary small" id="bkCopy">Copia backup</button>
+        <button class="btn secondary small" id="bkLoad">Ripristina</button>
+      </div>
+    </details>
+  </section>
+
+  <section>
     <h2>Check-in per Claude</h2>
-    <button class="copy" id="copyBtn">Copia check-in</button>
+    <button class="btn small copy" id="copyBtn">Copia check-in</button>
     <pre id="checkin"></pre>
   </section>
 
-  <p class="save" id="saveState">Dati salvati su questo telefono</p>
+  <p class="save">Dati salvati su questo telefono</p>
 </main>
 
-<script>
-const EXERCISES = [
-  {id:"angels", name:"Wall angels", levels:["Contatto dove riesci","Braccia e polsi sempre al muro","Piedi più vicini al muro","Pausa in alto, discesa lenta","A terra, pancia in giù"]},
-  {id:"gambe", name:"Gambe", levels:["Squat su sedia","Squat libero","Squat lento con pausa","Affondi","Squat bulgaro"]},
-  {id:"spinta", name:"Spinta", levels:["Piegamenti al muro","Piegamenti al tavolo","Sulle ginocchia","Da terra","Piedi rialzati"]},
-  {id:"tirata", name:"Tirata", levels:["Rematore asciugamano alla porta","Sotto il tavolo, gambe piegate","Sotto il tavolo, gambe tese","Trazioni negative","Trazioni"]},
-  {id:"core", name:"Core", levels:["Plank sulle ginocchia","Plank completo","Plank con tocco spalla","Hollow hold raccolto","Hollow hold"]}
-];
-const LS_KEY = "mantra-tracker-v1";
-let state = {start:null, days:{}, levels:{}};
+<!-- sessione guidata -->
+<div class="run" id="run" hidden role="dialog" aria-modal="true" aria-label="Allenamento guidato">
+  <div class="run-top" id="runTop">
+    <button class="ghost" id="runExit">Esci</button>
+    <span class="run-meta" id="runMeta"></span>
+    <button class="ghost" id="runVoice" aria-pressed="true">Voce</button>
+  </div>
+  <div class="bar" id="runBarWrap"><i id="runBar"></i></div>
+  <div id="runLive" class="run-body">
+    <p class="run-kicker" id="runKicker"></p>
+    <h2 class="run-title" id="runTitle"></h2>
+    <p class="run-level" id="runLevel"></p>
+    <div class="ring" id="ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="trk" cx="60" cy="60" r="54"/><circle class="val" id="ringVal" cx="60" cy="60" r="54"/></svg>
+      <div class="ring-in"><div class="ring-num" id="runNum"></div><div class="ring-unit" id="runUnit"></div></div>
+    </div>
+    <p class="run-cue" id="runCue"></p>
+    <button class="plus" id="runPlus" hidden>+10 s</button>
+  </div>
+  <p class="run-next" id="runNext"></p>
+  <div class="run-actions" id="runActions">
+    <button class="side" id="runBack" aria-label="Indietro">‹</button>
+    <button class="btn primary" id="runMain">Fatto</button>
+    <button class="side" id="runSkip" aria-label="Avanti">›</button>
+  </div>
+  <div class="sum" id="sum" hidden>
+    <h2 id="sumTitle">Fatto.</h2>
+    <p class="lead" id="sumLead"></p>
+    <p class="muted" style="margin:0">Com'è andato ogni esercizio?</p>
+    <div id="feelList"></div>
+    <label class="field">Note (facoltativo)
+      <input type="text" id="sumNote" autocomplete="off">
+    </label>
+    <button class="btn primary" id="sumSave">Salva</button>
+  </div>
+</div>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- dati ---------- */
+const EXERCISES = [
+  {id:"angels", short:"angels", name:"Wall angels", levels:[
+    {t:"Contatto dove riesci", r:[8,12], cue:"Schiena al muro, piedi a un passo. Scivola su e giù senza forzare."},
+    {t:"Braccia e polsi sempre al muro", r:[8,12], cue:"Gomiti e dorso dei polsi restano al muro per tutta la corsa."},
+    {t:"Piedi più vicini al muro", r:[8,12], cue:"Talloni a 10 cm dal muro, zona lombare appoggiata."},
+    {t:"Pausa in alto, discesa lenta", r:[6,10], cue:"2 secondi fermo in alto, 3 secondi per scendere."},
+    {t:"A terra, pancia in giù", r:[8,12], cue:"Fronte a terra, braccia staccate dal pavimento: da W a Y e ritorno."}]},
+  {id:"gambe", short:"gambe", name:"Gambe", levels:[
+    {t:"Squat su sedia", r:[8,15], cue:"Sfiora la sedia e rialzati senza usare le mani."},
+    {t:"Squat libero", r:[10,20], cue:"Talloni a terra, ginocchia nella direzione delle punte."},
+    {t:"Squat lento con pausa", r:[8,12], cue:"3 secondi giù, 1 fermo in basso, su deciso."},
+    {t:"Affondi", r:[6,10], side:true, cue:"Passo lungo, il ginocchio dietro sfiora terra. Alterna le gambe."},
+    {t:"Squat bulgaro", r:[6,10], side:true, cue:"Piede dietro su una sedia, busto dritto, scendi in verticale."}]},
+  {id:"spinta", short:"spinta", name:"Spinta", levels:[
+    {t:"Piegamenti al muro", r:[10,15], cue:"Corpo dritto come una tavola, petto verso il muro."},
+    {t:"Piegamenti al tavolo", r:[8,15], cue:"Mani sul bordo di un tavolo stabile, corpo in linea."},
+    {t:"Sulle ginocchia", r:[8,12], cue:"Anche in linea con le spalle, non piegarti a metà."},
+    {t:"Da terra", r:[5,12], cue:"Gomiti a 45° dal busto, il petto sfiora terra."},
+    {t:"Piedi rialzati", r:[5,12], cue:"Piedi su sedia o divano, addome contratto."}]},
+  {id:"tirata", short:"tirata", name:"Tirata", levels:[
+    {t:"Rematore asciugamano alla porta", r:[10,15], cue:"Asciugamano attorno alle maniglie, porta aperta e ferma. Inclinati indietro e porta il petto verso la porta."},
+    {t:"Sotto il tavolo, gambe piegate", r:[6,12], cue:"Tavolo robusto, presa sul bordo: tira il petto verso il bordo."},
+    {t:"Sotto il tavolo, gambe tese", r:[6,12], cue:"Corpo dritto dai talloni alle spalle, scapole indietro."},
+    {t:"Trazioni negative", r:[3,5], cue:"Parti col mento sopra la sbarra e scendi in 5 secondi."},
+    {t:"Trazioni", r:[3,8], cue:"Parti a braccia tese, sali fino al mento sopra la sbarra."}]},
+  {id:"core", short:"core", name:"Core", levels:[
+    {t:"Plank sulle ginocchia", s:[20,40], cue:"Gomiti sotto le spalle, glutei stretti, respira."},
+    {t:"Plank completo", s:[20,45], cue:"Linea dritta da talloni a testa, il bacino non cade."},
+    {t:"Plank con tocco spalla", s:[20,40], cue:"Piedi larghi, tocchi lenti alternati, bacino fermo."},
+    {t:"Hollow hold raccolto", s:[15,30], cue:"Lombare incollata a terra, ginocchia al petto, spalle sollevate."},
+    {t:"Hollow hold", s:[20,40], cue:"Braccia e gambe tese e sollevate, lombare sempre a terra."}]}
+];
+const WARM = {secs:60, title:"Risveglio", cue:"Circonduzioni spalle, gatto-mucca, qualche squat lento. Acqua fatta?"};
+const MILESTONES = [3,7,14,21,30,45,66,100,150,200,365];
+const FEELS = [["facile","Facile"],["giusto","Giusto"],["duro","Duro"]];
+const RANK = {saltato:1, minimo:2, fatto:3};
+const LS_KEY = "mantra-tracker-v1";
+const DEFAULT_SETTINGS = {rounds:2, restEx:15, restRound:45, voice:true, sound:true, warm:true, remind:"06:05"};
+
+let state = {start:null, days:{}, levels:{}, hold:{}, settings:{...DEFAULT_SETTINGS}};
+
+/* ---------- util date ---------- */
+const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2,"0");
 const key = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const today = () => key(new Date());
-const addDays = (k,n) => { const [y,m,d]=k.split("-").map(Number); const x=new Date(y,m-1,d+n); return key(x); };
-const diffDays = (a,b) => { const [y1,m1,d1]=a.split("-").map(Number),[y2,m2,d2]=b.split("-").map(Number);
-  return Math.round((new Date(y2,m2-1,d2)-new Date(y1,m1-1,d1))/86400000); };
+const parse = k => { const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (k,n) => { const x=parse(k); x.setDate(x.getDate()+n); return key(x); };
+const diffDays = (a,b) => Math.round((parse(b)-parse(a))/86400000);
+const isDone = e => !!e && (e.s==="fatto" || e.s==="minimo");
+const fmt = s => s>=60 ? Math.floor(s/60)+":"+pad(s%60) : String(s);
 
-function loadLocal(){
-  try{ const raw = localStorage.getItem(LS_KEY); if(raw) state = Object.assign(state, JSON.parse(raw)); }catch(e){}
+/* ---------- storage ---------- */
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state = {start:d.start||null, days:d.days||{}, levels:d.levels||{}, hold:d.hold||{},
+               settings:Object.assign({...DEFAULT_SETTINGS}, d.settings||{})};
+    }
+  }catch(e){}
 }
-function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+const S = () => state.settings;
+function ensureStart(){ if(!state.start) state.start = today(); }
 
-function persist(){ saveLocal(); }
-function setSave(t){ document.getElementById("saveState").textContent = t; }
-
-function ensureStart(){
-  if(!state.start){ state.start = today(); }
+/* ---------- routine ---------- */
+const lvOf = ex => Math.min(state.levels[ex.id]||0, ex.levels.length-1);
+const levelOf = ex => ex.levels[lvOf(ex)];
+function holdOf(ex){
+  const L = levelOf(ex); if(!L.s) return null;
+  const h = state.hold[ex.id];
+  return Math.max(L.s[0], Math.min(L.s[1], h || L.s[0]));
+}
+function targetText(ex, mode){
+  const L = levelOf(ex);
+  if(L.s) return (mode==="minimo" ? L.s[0] : holdOf(ex)) + " s";
+  const r = mode==="minimo" ? String(L.r[0]) : L.r[0]+"–"+L.r[1];
+  return r + (L.side ? " per lato" : "");
+}
+function setLevel(ex, lv){
+  state.levels[ex.id] = lv;
+  const L = ex.levels[lv]; if(L.s) state.hold[ex.id] = L.s[0];
+  save();
+}
+/* ultime sessioni complete a questo livello: 2 "facile" di fila → pronto a salire */
+function readyUp(ex){
+  const lv = lvOf(ex); if(lv >= ex.levels.length-1) return false;
+  const L = ex.levels[lv];
+  const feels = Object.keys(state.days).sort().reverse()
+    .map(k=>state.days[k]).filter(e=>e.s==="fatto" && e.feel && e.feel[ex.id] && e.lv && e.lv[ex.id]===lv)
+    .slice(0,2).map(e=>e.feel[ex.id]);
+  if(L.s) return holdOf(ex) >= L.s[1] && feels[0]==="facile";
+  return feels.length===2 && feels.every(f=>f==="facile");
 }
 
-function render(){
+/* ---------- stats ---------- */
+function streakInfo(){
   const t = today();
-  const start = state.start || t;
-  const n = Math.max(1, diffDays(start,t)+1);
-  document.getElementById("dayNum").textContent = n;
+  let k = isDone(state.days[t]) ? t : addDays(t,-1), cur = 0;
+  while(isDone(state.days[k])){ cur++; k = addDays(k,-1); }
+  let best = 0, run = 0;
+  if(state.start){
+    for(let d = state.start; diffDays(d,t) >= 0; d = addDays(d,1)){
+      if(isDone(state.days[d])){ run++; best = Math.max(best,run); } else run = 0;
+    }
+  }
+  const total = Object.values(state.days).filter(isDone).length;
+  let pct = null;
+  if(state.start){
+    const span = Math.min(28, diffDays(state.start,t)+1);
+    let n = 0; for(let i=0;i<span;i++) if(isDone(state.days[addDays(t,-i)])) n++;
+    pct = Math.round(n/span*100);
+  }
+  return {cur, best:Math.max(best,cur), total, pct};
+}
 
-  const y = state.days[addDays(t,-1)];
-  document.getElementById("alert").hidden = !(y && y.s === "saltato") || (state.days[t] && state.days[t].s !== "saltato");
+/* ---------- render ---------- */
+function estimate(mode){
+  const steps = buildSteps(mode);
+  let s = 0; steps.forEach(st=>{ s += st.secs || (st.k==="ex" ? 45 : 0); });
+  return Math.max(1, Math.round(s/60));
+}
+function render(){
+  const t = today(), start = state.start || t;
+  $("date").textContent = new Date().toLocaleDateString("it-IT",{weekday:"long", day:"numeric", month:"long"});
+  $("dayNum").textContent = Math.max(1, diffDays(start,t)+1);
 
-  const cur = state.days[t] || {};
-  document.querySelectorAll(".choices button").forEach(b=>{
-    b.setAttribute("aria-pressed", cur.s === b.dataset.s ? "true" : "false");
-  });
-  const note = document.getElementById("note");
-  if(document.activeElement !== note) note.value = cur.note || "";
+  const y = addDays(t,-1), cur = state.days[t] || {};
+  $("alert").hidden = !(state.start && diffDays(state.start,y) >= 0 && !isDone(state.days[y]) && !isDone(cur));
 
-  const ol = document.getElementById("routine");
-  ol.innerHTML = "";
+  // today card
+  const done = isDone(cur);
+  $("todoBox").hidden = done; $("doneBox").hidden = !done;
+  $("rounds").textContent = S().rounds;
+  $("rDown").disabled = S().rounds<=1; $("rUp").disabled = S().rounds>=4;
+  $("estFull").textContent = S().rounds + (S().rounds===1?" giro":" giri") + " · circa " + estimate("fatto") + " min";
+  $("estMin").textContent = "1 giro, niente pause lunghe · circa " + estimate("minimo") + " min";
+  if(done){
+    $("doneIcon").className = "check" + (cur.s==="minimo" ? " min" : "");
+    $("doneTitle").textContent = cur.s==="fatto" ? "Fatto" : "Minimo fatto. Conta.";
+    const bits = []; if(cur.rounds) bits.push(cur.rounds+(cur.rounds===1?" giro":" giri")); if(cur.dur) bits.push(cur.dur+" min");
+    $("doneSub").textContent = bits.join(" · ") || "Segnato a mano";
+  }
+  document.querySelectorAll("#manual .choices button").forEach(b=>b.setAttribute("aria-pressed", cur.s===b.dataset.s ? "true":"false"));
+  if(document.activeElement !== $("note")) $("note").value = cur.note || "";
+
+  // routine
+  const ol = $("routine"); ol.innerHTML = "";
   EXERCISES.forEach(ex=>{
-    const lv = state.levels[ex.id] || 0;
+    const lv = lvOf(ex), L = ex.levels[lv], up = readyUp(ex);
     const li = document.createElement("li");
-    const pips = ex.levels.map((_,i)=>`<i class="${i<=lv?"on":""}"></i>`).join("");
-    li.innerHTML = `<div><div class="ex"></div><div class="lvl"></div><div class="pips" aria-hidden="true">${pips}</div></div>
-      <div class="steps"><button aria-label="Livello giù">−</button><button aria-label="Livello su">+</button></div>`;
+    li.innerHTML = `<div class="ex-head"><div class="ex"></div>
+        <div class="steps"><button aria-label="Livello giù">−</button><button aria-label="Livello su">+</button></div>
+        <div class="lvl"></div><div class="target"></div></div>
+      <div class="pips" aria-hidden="true">${ex.levels.map((_,i)=>`<i class="${i<=lv?"on":""}"></i>`).join("")}</div>
+      ${up ? '<span class="badge">Pronto a salire</span>' : ""}
+      <details class="cue"><summary>Come si fa</summary><p></p></details>`;
     li.querySelector(".ex").textContent = ex.name;
-    li.querySelector(".lvl").textContent = "Livello " + (lv+1) + ": " + ex.levels[lv];
-    const [down, up] = li.querySelectorAll(".steps button");
-    down.disabled = lv === 0; up.disabled = lv === ex.levels.length-1;
-    down.onclick = ()=>{ state.levels[ex.id] = lv-1; persist(); render(); };
-    up.onclick = ()=>{ state.levels[ex.id] = lv+1; persist(); render(); };
+    li.querySelector(".lvl").textContent = "Livello " + (lv+1) + " · " + L.t;
+    li.querySelector(".target").textContent = targetText(ex,"fatto");
+    li.querySelector(".cue p").textContent = L.cue;
+    const [down, upB] = li.querySelectorAll(".steps button");
+    down.disabled = lv===0; upB.disabled = lv===ex.levels.length-1;
+    if(up) upB.classList.add("ready");
+    down.onclick = ()=>{ setLevel(ex, lv-1); render(); };
+    upB.onclick = ()=>{ setLevel(ex, lv+1); render(); toast(ex.name+": livello "+(lv+2)); };
     ol.appendChild(li);
   });
 
-  const chain = document.getElementById("chain");
-  chain.innerHTML = "";
-  for(let i=27;i>=0;i--){
-    const k = addDays(t,-i);
-    const d = document.createElement("div");
-    const e = state.days[k];
+  // chain: 5 settimane allineate al lunedì
+  const chain = $("chain"); chain.innerHTML = "";
+  const dow = (parse(t).getDay()+6)%7;
+  const first = addDays(t, -dow-28);
+  for(let i=0;i<35;i++){
+    const k = addDays(first,i), d = document.createElement("div"), e = state.days[k];
+    if(diffDays(t,k) > 0) d.classList.add("future");
+    else if(state.start && diffDays(state.start,k) < 0 && !(e && e.s)) d.classList.add("pre");
     if(e && e.s) d.classList.add(e.s);
-    if(i===0) d.classList.add("today");
-    d.title = k + (e && e.s ? " — " + e.s : "");
+    if(k===t) d.classList.add("today");
+    d.title = k + (e && e.s ? " — "+e.s : "");
     chain.appendChild(d);
   }
+  const st = streakInfo();
+  $("streak").textContent = st.cur; $("best").textContent = st.best; $("total").textContent = st.total;
+  $("pct").textContent = st.pct===null ? "–" : st.pct+"%";
+  const next = MILESTONES.find(m=>m>st.total) || (Math.ceil((st.total+1)/100)*100);
+  const prev = [...MILESTONES].reverse().find(m=>m<=st.total) || 0;
+  $("goalLabel").textContent = "Prossimo traguardo: " + next + " giorni fatti";
+  $("goalNum").textContent = st.total + "/" + next;
+  $("goalBar").style.width = Math.round((st.total-prev)/(next-prev)*100) + "%";
 
-  let streak = 0, k = t;
-  if(!state.days[k] || !state.days[k].s) k = addDays(k,-1);
-  while(state.days[k] && (state.days[k].s==="fatto"||state.days[k].s==="minimo")){ streak++; k = addDays(k,-1); }
-  document.getElementById("streak").textContent = streak;
-  document.getElementById("total").textContent = Object.values(state.days).filter(e=>e.s==="fatto"||e.s==="minimo").length;
+  // settings
+  $("restEx").value = S().restEx; $("restRound").value = S().restRound;
+  $("optVoice").checked = S().voice; $("optSound").checked = S().sound; $("optWarm").checked = S().warm;
+  $("remTime").value = S().remind;
 
-  document.getElementById("checkin").textContent = checkinText();
+  $("checkin").textContent = checkinText();
 }
 
 function checkinText(){
-  const t = today(); const e = state.days[t] || {};
-  const n = document.getElementById("dayNum").textContent;
-  const lv = id => (state.levels[id]||0)+1;
-  return `Giorno ${n} — ${e.s || "—"}\nLivelli: angels ${lv("angels")} gambe ${lv("gambe")} spinta ${lv("spinta")} tirata ${lv("tirata")} core ${lv("core")}\nCosa ha ostacolato: ${e.note || ""}`;
+  const t = today(), e = state.days[t] || {}, st = streakInfo();
+  const lines = [`Mantra — giorno ${$("dayNum").textContent} (${parse(t).toLocaleDateString("it-IT",{weekday:"short",day:"2-digit",month:"2-digit"})})`];
+  const bits = [e.s || "non ancora"]; if(e.rounds) bits.push(e.rounds+(e.rounds===1?" giro":" giri")); if(e.dur) bits.push(e.dur+" min");
+  lines.push("Oggi: " + bits.join(" · "));
+  if(e.feel && Object.keys(e.feel).length) lines.push("Sensazioni: " + EXERCISES.filter(x=>e.feel[x.id]).map(x=>x.short+" "+e.feel[x.id]).join(", "));
+  lines.push("Livelli: " + EXERCISES.map(x=>{ const h=holdOf(x); return x.short+" "+(lvOf(x)+1)+(h?" ("+h+"s)":""); }).join(" · "));
+  lines.push(`Catena ${st.cur} · record ${st.best} · fatti ${st.total}` + (st.pct===null?"":` · ultime 4 sett. ${st.pct}%`));
+  lines.push("Cosa ha ostacolato / note: " + (e.note || ""));
+  return lines.join("\n");
 }
 
-document.querySelectorAll(".choices button").forEach(b=>{
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg){ const el=$("toast"); el.textContent=msg; el.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("on"),2200); }
+
+/* ---------- audio / voce / schermo ---------- */
+let ac = null, wl = null;
+function audioOn(){
+  try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){}
+}
+function beep(f=880, d=.12, v=.25){
+  if(!S().sound || !ac) return;
+  try{
+    const o=ac.createOscillator(), g=ac.createGain(), n=ac.currentTime;
+    o.type="sine"; o.frequency.value=f; g.gain.setValueAtTime(v,n); g.gain.exponentialRampToValueAtTime(.001,n+d);
+    o.connect(g); g.connect(ac.destination); o.start(n); o.stop(n+d+.02);
+  }catch(e){}
+}
+let itVoice = null;
+function pickVoice(){ try{ itVoice = speechSynthesis.getVoices().find(v=>/^it/i.test(v.lang)) || null; }catch(e){} }
+if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(txt){
+  if(!S().voice || !("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(txt); u.lang="it-IT"; if(itVoice) u.voice=itVoice; u.rate=1.02; speechSynthesis.speak(u); }catch(e){}
+}
+async function lockScreen(){ try{ if("wakeLock" in navigator) wl = await navigator.wakeLock.request("screen"); }catch(e){} }
+function unlockScreen(){ try{ wl && wl.release(); }catch(e){} wl = null; }
+
+/* ---------- sessione guidata ---------- */
+function buildSteps(mode){
+  const R = mode==="minimo" ? 1 : S().rounds, steps = [{k:"ready", secs:5}];
+  if(mode!=="minimo" && S().warm) steps.push({k:"warm", secs:WARM.secs});
+  for(let r=1;r<=R;r++){
+    EXERCISES.forEach((ex,i)=>{
+      const L = levelOf(ex);
+      steps.push({k:"ex", ex, r, R, i, secs: L.s ? (mode==="minimo" ? L.s[0] : holdOf(ex)) : 0, lead: L.s ? 3 : 0});
+      const last = r===R && i===EXERCISES.length-1;
+      if(!last) steps.push({k:"rest", r, R, i, secs: i===EXERCISES.length-1 ? S().restRound : (mode==="minimo" ? 10 : S().restEx)});
+    });
+  }
+  return steps;
+}
+const run = {on:false, mode:null, steps:[], i:0, endAt:0, left:0, paused:false, total:0, t0:0, timer:null, lastBeep:null, exDone:0};
+const C = 2*Math.PI*54;
+$("ringVal").style.strokeDasharray = C;
+
+function startRun(mode){
+  ensureStart(); audioOn(); lockScreen();
+  Object.assign(run, {on:true, mode, steps:buildSteps(mode), i:0, paused:false, t0:Date.now(), exDone:0});
+  $("run").hidden = false; $("sum").hidden = true; $("runLive").hidden = false; $("runActions").hidden = false; $("runNext").hidden = false;
+  $("runVoice").setAttribute("aria-pressed", S().voice ? "true":"false");
+  $("runExit").textContent = "Esci"; $("runExit").classList.remove("warn"); $("runTop").hidden = false; $("runBarWrap").hidden = false;
+  document.body.style.overflow = "hidden";
+  say(mode==="minimo" ? "Versione minima. Un giro, si parte." : "Si parte. " + S().rounds + " giri.");
+  enter(0, true);
+  clearInterval(run.timer); run.timer = setInterval(tick, 100);
+}
+function stepExName(st){ return st.ex.name + " · " + levelOf(st.ex).t; }
+function nextEx(from){ for(let j=from+1;j<run.steps.length;j++) if(run.steps[j].k==="ex") return run.steps[j]; return null; }
+
+function enter(i, silent){
+  run.i = i; run.paused = false; run.lastBeep = null;
+  const st = run.steps[i];
+  run.total = (st.secs||0) + (st.lead||0);
+  run.endAt = Date.now() + run.total*1000; run.left = run.total*1000;
+  $("runBar").style.width = Math.round(i/run.steps.length*100) + "%";
+  $("runMeta").textContent = st.k==="ex" ? `Giro ${st.r}/${st.R} · ${st.i+1}/${EXERCISES.length}` : (st.r ? `Giro ${st.r}/${st.R}` : "");
+  $("runPlus").hidden = !(st.k==="rest" || st.k==="warm");
+  $("runBack").disabled = i===0;
+  const ring = $("ring"); ring.className = "ring" + (st.k==="rest" ? " rest" : "");
+  const rv = $("ringVal"); rv.style.transition = "none"; requestAnimationFrame(()=>requestAnimationFrame(()=>rv.style.transition=""));
+  const nx = nextEx(i);
+  $("runNext").textContent = nx && st.k!=="rest" ? "Poi: " + nx.ex.name : "";
+  if(st.k==="ready"){
+    const first = run.steps[1];
+    set("Pronto", "Mettiti in posizione", "", "secondi", first.k==="warm" ? "Prima: risveglio, un minuto." : "Prima: " + stepExName(first) + " · " + targetFor(first));
+    $("runMain").textContent = "Via";
+  } else if(st.k==="warm"){
+    set("Riscaldamento", WARM.title, "", "secondi", WARM.cue);
+    $("runMain").textContent = "Salta";
+    if(!silent) say("Risveglio. Un minuto.");
+  } else if(st.k==="rest"){
+    const n = nextEx(i);
+    set(st.i===EXERCISES.length-1 ? "Fine giro" : "Pausa", "Respira", "", "secondi", n ? "Poi: " + stepExName(n) + " · " + targetFor(n) : "");
+    $("runMain").textContent = "Vai";
+    if(!silent) say((st.i===EXERCISES.length-1 ? "Giro finito. " : "Pausa. ") + (n ? "Poi " + n.ex.name + "." : ""));
+  } else {
+    const L = levelOf(st.ex);
+    set(st.ex.name, L.t, "", "", L.cue);
+    $("runLevel").textContent = "Livello " + (lvOf(st.ex)+1);
+    $("runTitle").textContent = L.t;
+    $("runKicker").textContent = st.ex.name;
+    if(st.secs){
+      $("runMain").textContent = "Pausa";
+      if(!silent) say(st.ex.name + ". " + L.t + ". " + st.secs + " secondi.");
+    } else {
+      $("runNum").textContent = run.mode==="minimo" ? String(L.r[0]) : L.r[0]+"–"+L.r[1];
+      $("runUnit").textContent = "ripetizioni" + (L.side ? " per lato" : "");
+      $("ringVal").style.strokeDashoffset = 0;
+      $("runMain").textContent = "Fatto";
+      if(!silent) say(st.ex.name + ". " + L.t + ". " + (run.mode==="minimo" ? L.r[0] : "da " + L.r[0] + " a " + L.r[1]) + (L.side ? " per lato." : "."));
+    }
+  }
+  tick();
+}
+function targetFor(st){ const L=levelOf(st.ex); return L.s ? st.secs+" s" : (run.mode==="minimo" ? L.r[0] : L.r[0]+"–"+L.r[1]) + (L.side?" per lato":""); }
+function set(kicker, title, num, unit, cue){
+  $("runKicker").textContent = kicker; $("runTitle").textContent = title; $("runLevel").textContent = "";
+  $("runNum").textContent = num; $("runUnit").textContent = unit; $("runCue").textContent = cue || "";
+}
+function tick(){
+  if(!run.on) return;
+  const st = run.steps[run.i];
+  if(!run.total) return; // esercizio a ripetizioni: si avanza a mano
+  const left = run.paused ? run.left : Math.max(0, run.endAt - Date.now());
+  const sec = Math.ceil(left/1000);
+  const ring = $("ring");
+  if(st.lead && sec > st.secs){
+    const l = sec - st.secs;
+    ring.classList.add("lead");
+    $("runNum").textContent = l; $("runUnit").textContent = "pronti";
+    $("ringVal").style.strokeDashoffset = C * (1 - (left - st.secs*1000)/(st.lead*1000));
+    if(run.lastBeep !== sec && !run.paused){ run.lastBeep = sec; beep(660,.1); }
+  } else {
+    ring.classList.remove("lead");
+    const base = st.secs*1000;
+    $("runNum").textContent = fmt(sec);
+    if(st.k==="ex") $("runUnit").textContent = "secondi";
+    $("ringVal").style.strokeDashoffset = C * (1 - Math.min(1, left/base));
+    if(st.lead && sec === st.secs && run.lastBeep !== "go"){ run.lastBeep = "go"; beep(1175,.25); }
+    if(sec<=3 && sec>0 && run.lastBeep !== sec && !run.paused){ run.lastBeep = sec; beep(880,.1); }
+  }
+  if(!run.paused && left<=0){ beep(1320,.35,.3); advance(); }
+}
+function advance(){
+  const st = run.steps[run.i];
+  if(st.k==="ex") run.exDone = Math.max(run.exDone, countEx(run.i+1));
+  if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
+  if(run.i+1 >= run.steps.length) return finish(run.mode);
+  enter(run.i+1);
+}
+function countEx(upto){ let n=0; for(let j=0;j<upto;j++) if(run.steps[j].k==="ex") n++; return n; }
+
+$("runMain").addEventListener("click", ()=>{
+  audioOn();
+  const st = run.steps[run.i];
+  if(st.k==="ex" && st.secs){
+    if(run.paused){ run.paused=false; run.endAt = Date.now()+run.left; $("runMain").textContent="Pausa"; }
+    else { run.paused=true; run.left = Math.max(0, run.endAt-Date.now()); $("runMain").textContent="Riprendi"; }
+    return;
+  }
+  advance();
+});
+$("runSkip").addEventListener("click", ()=>advance());
+$("runBack").addEventListener("click", ()=>{
+  let j = run.i-1; while(j>0 && run.steps[j].k==="rest") j--;
+  enter(Math.max(0,j));
+});
+$("runPlus").addEventListener("click", ()=>{ run.endAt += 10000; run.total += 10; run.steps[run.i].secs += 10; tick(); });
+$("runVoice").addEventListener("click", e=>{
+  S().voice = !S().voice; save(); e.currentTarget.setAttribute("aria-pressed", S().voice?"true":"false");
+  if(!S().voice && "speechSynthesis" in window) speechSynthesis.cancel();
+});
+let exitArm = null;
+$("runExit").addEventListener("click", e=>{
+  const b = e.currentTarget;
+  if(!exitArm){ b.textContent="Sicuro?"; b.classList.add("warn"); exitArm = setTimeout(()=>{ exitArm=null; b.textContent="Esci"; b.classList.remove("warn"); }, 3000); return; }
+  clearTimeout(exitArm); exitArm=null; b.textContent="Esci"; b.classList.remove("warn");
+  // un giro completo conta come minimo
+  if(run.exDone >= EXERCISES.length) finish("minimo"); else closeRun();
+});
+function closeRun(){
+  run.on = false; clearInterval(run.timer); unlockScreen();
+  if("speechSynthesis" in window) try{ speechSynthesis.cancel(); }catch(e){}
+  $("run").hidden = true; document.body.style.overflow = "";
+  render();
+}
+document.addEventListener("visibilitychange", ()=>{ if(run.on && document.visibilityState==="visible"){ lockScreen(); tick(); } });
+
+/* riepilogo */
+let sumFeel = {}, sumMode = null, sumDur = 0, sumRounds = 0;
+function finish(mode){
+  clearInterval(run.timer); run.on = false;
+  sumMode = mode; sumFeel = {};
+  sumDur = Math.max(1, Math.round((Date.now()-run.t0)/60000));
+  sumRounds = mode==="minimo" && run.mode!=="minimo" ? Math.max(1, Math.floor(run.exDone/EXERCISES.length)) : (run.mode==="minimo" ? 1 : S().rounds);
+  $("runBar").style.width = "100%";
+  $("runLive").hidden = true; $("runActions").hidden = true; $("runNext").hidden = true; $("runMeta").textContent = "";
+  $("sum").hidden = false; $("runTop").hidden = true; $("runBarWrap").hidden = true;
+  $("sumTitle").textContent = mode==="fatto" ? "Fatto." : "Minimo fatto.";
+  $("sumLead").textContent = sumRounds + (sumRounds===1?" giro":" giri") + " · " + sumDur + " min" + (mode==="minimo" ? " · Conta." : "");
+  const list = $("feelList"); list.innerHTML = "";
+  EXERCISES.forEach(ex=>{
+    const div = document.createElement("div"); div.className = "feel";
+    div.innerHTML = `<div class="ex"></div><div class="choices">${FEELS.map(([v,l])=>`<button data-v="${v}" aria-pressed="false">${l}</button>`).join("")}</div>`;
+    div.querySelector(".ex").textContent = ex.name + " · " + levelOf(ex).t;
+    div.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      sumFeel[ex.id] = sumFeel[ex.id]===b.dataset.v ? undefined : b.dataset.v;
+      div.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", sumFeel[ex.id]===x.dataset.v?"true":"false"));
+    });
+    list.appendChild(div);
+  });
+  $("sumNote").value = (state.days[today()]||{}).note || "";
+  unlockScreen();
+  say(mode==="fatto" ? "Fatto. Bravo." : "Minimo fatto. Conta.");
+}
+$("sumSave").addEventListener("click", ()=>{
+  const t = today(), prev = state.days[t] || {};
+  const feel = {}; Object.keys(sumFeel).forEach(k=>{ if(sumFeel[k]) feel[k]=sumFeel[k]; });
+  const lv = {}; EXERCISES.forEach(ex=>lv[ex.id]=lvOf(ex));
+  const keepPrev = prev.s && RANK[prev.s] > RANK[sumMode];
+  state.days[t] = keepPrev ? Object.assign(prev, {note:$("sumNote").value || prev.note})
+    : {s:sumMode, note:$("sumNote").value, feel, lv, rounds:sumRounds, dur:sumDur};
+  // tenute a tempo: facile +5 s, duro −5 s (solo sessione piena)
+  if(sumMode==="fatto") EXERCISES.forEach(ex=>{
+    const L = levelOf(ex); if(!L.s || !feel[ex.id]) return;
+    const h = holdOf(ex);
+    if(feel[ex.id]==="facile") state.hold[ex.id] = Math.min(L.s[1], h+5);
+    if(feel[ex.id]==="duro") state.hold[ex.id] = Math.max(L.s[0], h-5);
+  });
+  save(); closeRun();
+  const st = streakInfo(), ups = EXERCISES.filter(readyUp).map(e=>e.name);
+  toast(ups.length ? "Pronto a salire: " + ups.join(", ") : "Salvato. Catena: " + st.cur);
+  if(MILESTONES.includes(st.total)) setTimeout(()=>toast("Traguardo: " + st.total + " giorni fatti"), 2400);
+});
+
+/* ---------- eventi home ---------- */
+$("startFull").addEventListener("click", ()=>startRun("fatto"));
+$("startMin").addEventListener("click", ()=>startRun("minimo"));
+$("again").addEventListener("click", ()=>startRun("fatto"));
+$("rDown").addEventListener("click", ()=>{ S().rounds = Math.max(1,S().rounds-1); save(); render(); });
+$("rUp").addEventListener("click", ()=>{ S().rounds = Math.min(4,S().rounds+1); save(); render(); });
+document.querySelectorAll("#manual .choices button").forEach(b=>{
   b.addEventListener("click", ()=>{
     ensureStart();
-    const t = today();
-    const cur = state.days[t] || {};
-    cur.s = cur.s === b.dataset.s ? undefined : b.dataset.s;
-    state.days[t] = cur;
-    persist(); render();
+    const t = today(), cur = state.days[t] || {};
+    cur.s = cur.s===b.dataset.s ? undefined : b.dataset.s;
+    state.days[t] = cur; save(); render();
   });
 });
-let noteTimer;
-document.getElementById("note").addEventListener("input", e=>{
+let noteT;
+$("note").addEventListener("input", e=>{
   ensureStart();
-  const t = today();
-  state.days[t] = Object.assign(state.days[t]||{}, {note:e.target.value});
-  document.getElementById("checkin").textContent = checkinText();
-  clearTimeout(noteTimer); noteTimer = setTimeout(persist, 1200);
+  const t = today(); state.days[t] = Object.assign(state.days[t]||{}, {note:e.target.value});
+  $("checkin").textContent = checkinText();
+  clearTimeout(noteT); noteT = setTimeout(save, 800);
 });
-document.getElementById("copyBtn").addEventListener("click", async ()=>{
-  const btn = document.getElementById("copyBtn");
-  try{ await navigator.clipboard.writeText(checkinText()); btn.textContent = "Copiato"; }
-  catch(e){
-    const r = document.createRange(); r.selectNodeContents(document.getElementById("checkin"));
-    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-    btn.textContent = "Testo selezionato: copialo";
-  }
-  setTimeout(()=>btn.textContent="Copia check-in", 2000);
+$("restEx").addEventListener("change", e=>{ S().restEx = +e.target.value; save(); render(); });
+$("restRound").addEventListener("change", e=>{ S().restRound = +e.target.value; save(); render(); });
+$("optVoice").addEventListener("change", e=>{ S().voice = e.target.checked; save(); });
+$("optSound").addEventListener("change", e=>{ S().sound = e.target.checked; save(); });
+$("optWarm").addEventListener("change", e=>{ S().warm = e.target.checked; save(); render(); });
+$("remTime").addEventListener("change", e=>{ S().remind = e.target.value || "06:05"; save(); });
+
+/* promemoria .ics */
+$("icsBtn").addEventListener("click", ()=>{
+  const [hh,mm] = (S().remind||"06:05").split(":").map(Number);
+  const d = new Date(); d.setHours(hh,mm,0,0); if(d <= new Date()) d.setDate(d.getDate()+1);
+  const ymd = d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()), hm = pad(hh)+pad(mm)+"00";
+  const stamp = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const url = location.href.split("#")[0];
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mantra//IT","CALSCALE:GREGORIAN","BEGIN:VEVENT",
+    "UID:mantra-"+Date.now()+"@mantra","DTSTAMP:"+stamp,"DTSTART:"+ymd+"T"+hm,"DURATION:PT15M","RRULE:FREQ=DAILY",
+    "SUMMARY:Mantra","DESCRIPTION:Sono uno che si allena ogni mattina. Anche minimo conta.","URL:"+url,
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Mantra","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const blob = new Blob([ics], {type:"text/calendar"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "mantra-promemoria.ics";
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  toast("Apri il file scaricato e aggiungilo al Calendario");
 });
 
-loadLocal();
+/* backup */
+async function copyText(txt, btn, label){
+  try{ await navigator.clipboard.writeText(txt); btn.textContent = "Copiato"; }
+  catch(e){ const r=document.createRange(); r.selectNodeContents($("checkin")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selezionato: copialo"; }
+  setTimeout(()=>btn.textContent=label, 2000);
+}
+$("copyBtn").addEventListener("click", e=>copyText(checkinText(), e.currentTarget, "Copia check-in"));
+$("bkCopy").addEventListener("click", e=>copyText(JSON.stringify(state), e.currentTarget, "Copia backup"));
+$("bkLoad").addEventListener("click", ()=>{
+  const raw = prompt("Incolla il backup di Mantra");
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    if(!d || typeof d.days !== "object") throw 0;
+    state = {start:d.start||null, days:d.days||{}, levels:d.levels||{}, hold:d.hold||{}, settings:Object.assign({...DEFAULT_SETTINGS}, d.settings||{})};
+    save(); render(); toast("Backup ripristinato");
+  }catch(e){ toast("Backup non valido"); }
+});
+
+load();
 render();
+// a mezzanotte (o al ritorno sull'app) aggiorna il giorno
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && !run.on) render(); });
 
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
 </body>
 </html>
