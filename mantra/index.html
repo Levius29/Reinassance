@@ -90,7 +90,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .choices button[aria-pressed="true"][data-s="minimo"]{background:var(--min);border-color:var(--min);color:var(--ink)}
 .choices button[aria-pressed="true"][data-s="saltato"]{background:var(--skip);border-color:var(--skip);color:#fff}
 label.field{display:block;margin-top:12px;color:var(--muted);font-size:15px}
-input[type=text],input[type=time],select{width:100%;font:inherit;padding:12px;border-radius:10px;border:2px solid var(--line);
+input[type=text],input[type=time],input[type=number],select{width:100%;font:inherit;padding:12px;border-radius:10px;border:2px solid var(--line);
   background:var(--surface);color:var(--ink);margin-top:4px}
 
 /* sections */
@@ -187,6 +187,44 @@ pre{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);
 .run-actions .btn{margin:0;padding:20px;font-size:20px}
 .plus{margin-top:8px;background:none;border:none;color:var(--muted);text-decoration:underline;font-size:15px}
 
+/* log ripetizioni nel run */
+.logrow{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px}
+.logrow button{width:56px;height:56px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font-size:26px;line-height:1}
+.logrow output{display:block;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:40px;font-weight:800;line-height:1;min-width:2ch;text-align:center}
+.logrow span{display:block;color:var(--muted);font-size:14px;text-align:center}
+.feel .reps{color:var(--muted);font-size:15px;font-weight:400}
+
+/* grafici */
+.spark{display:block;width:100%;height:auto;margin-top:10px;overflow:visible}
+.sp-line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.sp-dot{fill:var(--accent)}
+.lvmark{stroke:var(--line);stroke-width:1.5;stroke-dasharray:3 3}
+.lvtxt{fill:var(--muted);font-size:11px;font-weight:700}
+.spark-cap{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:13px;margin-top:2px}
+.spark-empty{color:var(--muted);font-size:14px;margin:8px 0 0}
+.badge.warn{background:var(--skip);color:#fff}
+.heat-wrap{overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.heat-months,.heat{display:grid;grid-auto-flow:column;grid-auto-columns:12px;gap:3px;width:max-content}
+.heat-months{grid-template-rows:16px;font-size:11px;color:var(--muted)}
+.heat-months span{white-space:nowrap;overflow:visible}
+.heat{grid-template-rows:repeat(7,12px)}
+.heat div{border-radius:3px;background:var(--empty)}
+.heat div.pre,.heat div.future{background:transparent;border:1px dashed var(--line)}
+.heat div.future{opacity:.4}
+.heat div.fatto{background:var(--done)} .heat div.minimo{background:var(--min)} .heat div.saltato{background:var(--skip)}
+.heat div.today{outline:2px solid var(--accent);outline-offset:1px}
+.chart{display:block;width:100%;height:auto;margin-top:8px}
+.chart .vb{fill:var(--surface-2)} .chart .vb.cur{fill:var(--accent)}
+.chart text{fill:var(--muted);font-size:11px;font-family:"Atkinson Hyperlegible",system-ui,sans-serif}
+.chart text.v{fill:var(--ink);font-weight:700}
+.chart .raw{fill:var(--muted);opacity:.55}
+.chart .ma{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.bhead{display:flex;align-items:baseline;justify-content:space-between;margin-top:18px}
+.bhead h3{margin:0;font-size:17px}
+.bhead .num{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:26px;font-weight:800}
+.bsub{color:var(--muted);font-size:14px;margin:2px 0 0}
+
 /* summary */
 .sum{flex:1;overflow:auto;max-width:520px;width:100%;margin:0 auto;padding-top:16px}
 .sum h2{font-size:clamp(36px,11vw,52px);font-weight:800;margin:0;letter-spacing:-.02em;line-height:1}
@@ -248,13 +286,33 @@ pre{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);
   <section>
     <h2>Routine</h2>
     <ol class="routine" id="routine"></ol>
-    <p class="hint">Dopo ogni sessione dici com'è andata. Due volte "facile" di fila e ti propongo di salire. Nel dubbio, resta dove sei.</p>
+    <p class="hint">A ogni giro segni le ripetizioni fatte. Chiudi tutti i giri al massimo del range: ti propongo di salire. Due sessioni sotto il minimo: di scendere.</p>
+  </section>
+
+  <section>
+    <h2>Volume</h2>
+    <svg class="chart" id="vol" viewBox="0 0 320 150" role="img" aria-label="Ripetizioni totali per settimana"></svg>
+    <p class="hint" style="margin-top:4px">Ripetizioni totali a settimana, ultime 8. I tempi di tenuta sono esclusi.</p>
+  </section>
+
+  <section>
+    <h2>Corpo</h2>
+    <p class="hint" style="margin-top:0">Peso al mattino, dopo il bagno, prima di bere. Girovita all'altezza dell'ombelico, a fine espirazione. Conta la media di 7 giorni, non il singolo giorno.</p>
+    <div class="grid2">
+      <label class="field">Peso (kg)<input type="number" inputmode="decimal" step="0.1" id="bW"></label>
+      <label class="field">Girovita (cm)<input type="number" inputmode="decimal" step="0.5" id="bC"></label>
+    </div>
+    <button class="btn secondary small" id="bSave">Salva oggi</button>
+    <div id="bodyW"></div>
+    <div id="bodyC"></div>
   </section>
 
   <section>
     <h2>La catena</h2>
-    <div class="wk" aria-hidden="true"><span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span></div>
-    <div class="chain" id="chain" aria-label="Ultime cinque settimane"></div>
+    <div class="heat-wrap" id="heatWrap" aria-label="Ultimo anno">
+      <div class="heat-months" id="heatMonths" aria-hidden="true"></div>
+      <div class="heat" id="heat"></div>
+    </div>
     <div class="legend">
       <span><b style="background:var(--done)"></b>Fatto</span>
       <span><b style="background:var(--min)"></b>Minimo</span>
@@ -296,6 +354,7 @@ pre{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);
       <label class="toggle"><span>Voce guida</span><input type="checkbox" id="optVoice"></label>
       <label class="toggle"><span>Suoni</span><input type="checkbox" id="optSound"></label>
       <label class="toggle"><span>Riscaldamento (60 s)</span><input type="checkbox" id="optWarm"></label>
+      <label class="toggle"><span>Finisher 4 min a fine sessione</span><input type="checkbox" id="optFin"></label>
 
       <h3>Promemoria</h3>
       <p class="muted">Un evento ogni giorno nel Calendario dell'iPhone, con avviso.</p>
@@ -340,6 +399,11 @@ pre{white-space:pre-wrap;background:var(--surface);border:2px solid var(--line);
       <div class="ring-in"><div class="ring-num" id="runNum"></div><div class="ring-unit" id="runUnit"></div></div>
     </div>
     <p class="run-cue" id="runCue"></p>
+    <div class="logrow" id="logRow" hidden>
+      <button id="lgDown" aria-label="Una in meno">−</button>
+      <div><output id="lgVal" class="num"></output><span id="lgUnit">fatte</span></div>
+      <button id="lgUp" aria-label="Una in più">+</button>
+    </div>
     <button class="plus" id="runPlus" hidden>+10 s</button>
   </div>
   <p class="run-next" id="runNext"></p>
@@ -383,6 +447,12 @@ const EXERCISES = [
     {t:"Sulle ginocchia", r:[8,12], cue:"Anche in linea con le spalle, non piegarti a metà."},
     {t:"Da terra", r:[5,12], cue:"Gomiti a 45° dal busto, il petto sfiora terra."},
     {t:"Piedi rialzati", r:[5,12], cue:"Piedi su sedia o divano, addome contratto."}]},
+  {id:"anca", short:"anca", name:"Anca", levels:[
+    {t:"Ponte glutei", r:[12,20], cue:"Supino, piedi vicini ai glutei. Spingi dai talloni, stringi i glutei un secondo in alto."},
+    {t:"Ponte su una gamba", r:[8,12], side:true, cue:"Una gamba tesa in aria, bacino dritto, spingi dal tallone a terra."},
+    {t:"Hip thrust al divano", r:[10,15], cue:"Scapole sul bordo del divano. Sali finché busto e cosce sono in linea, un secondo fermo."},
+    {t:"Hip thrust su una gamba", r:[8,12], side:true, cue:"Scapole sul divano, una gamba sola, il bacino non ruota."},
+    {t:"Stacco su una gamba, lento", r:[8,12], side:true, cue:"Busto avanti e gamba dietro come un'unica leva, schiena piatta. 3 secondi giù, su spingendo l'anca avanti."}]},
   {id:"tirata", short:"tirata", name:"Tirata", levels:[
     {t:"Rematore asciugamano alla porta", r:[10,15], cue:"Asciugamano attorno alle maniglie, porta aperta e ferma. Inclinati indietro e porta il petto verso la porta."},
     {t:"Sotto il tavolo, gambe piegate", r:[6,12], cue:"Tavolo robusto, presa sul bordo: tira il petto verso il bordo."},
@@ -401,9 +471,10 @@ const MILESTONES = [3,7,14,21,30,45,66,100,150,200,365];
 const FEELS = [["facile","Facile"],["giusto","Giusto"],["duro","Duro"]];
 const RANK = {saltato:1, minimo:2, fatto:3};
 const LS_KEY = "mantra-tracker-v1";
-const DEFAULT_SETTINGS = {rounds:2, restEx:15, restRound:45, voice:true, sound:true, warm:true, remind:"06:05"};
+const DEFAULT_SETTINGS = {rounds:2, restEx:15, restRound:45, voice:true, sound:true, warm:true, fin:true, remind:"06:05"};
+const FIN_MINS = 4;
 
-let state = {start:null, days:{}, levels:{}, hold:{}, settings:{...DEFAULT_SETTINGS}};
+let state = {start:null, days:{}, levels:{}, hold:{}, body:{}, settings:{...DEFAULT_SETTINGS}};
 
 /* ---------- util date ---------- */
 const $ = id => document.getElementById(id);
@@ -422,10 +493,13 @@ function load(){
     const raw = localStorage.getItem(LS_KEY);
     if(raw){
       const d = JSON.parse(raw);
-      state = {start:d.start||null, days:d.days||{}, levels:d.levels||{}, hold:d.hold||{},
-               settings:Object.assign({...DEFAULT_SETTINGS}, d.settings||{})};
+      state = fromData(d);
     }
   }catch(e){}
+}
+function fromData(d){
+  return {start:d.start||null, days:d.days||{}, levels:d.levels||{}, hold:d.hold||{}, body:d.body||{},
+          settings:Object.assign({...DEFAULT_SETTINGS}, d.settings||{})};
 }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 const S = () => state.settings;
@@ -450,15 +524,99 @@ function setLevel(ex, lv){
   const L = ex.levels[lv]; if(L.s) state.hold[ex.id] = L.s[0];
   save();
 }
-/* ultime sessioni complete a questo livello: 2 "facile" di fila → pronto a salire */
+/* sessioni registrate a questo livello, dalla più recente */
+const sortedDays = () => Object.keys(state.days).sort();
+const clean = a => (a||[]).filter(x=>x!=null);
+function sessionsAt(ex, lv){
+  return sortedDays().reverse().map(k=>state.days[k])
+    .filter(e=>e.s && e.lv && e.lv[ex.id]===lv && (clean(e.reps && e.reps[ex.id]).length || (e.feel && e.feel[ex.id])));
+}
+function lastReps(ex, lv){ const e = sessionsAt(ex,lv).find(e=>e.reps && clean(e.reps[ex.id]).length); return e ? e.reps[ex.id] : null; }
+/* doppia progressione: tutti i giri al massimo del range → sali. Riserva: due "facile" di fila */
 function readyUp(ex){
   const lv = lvOf(ex); if(lv >= ex.levels.length-1) return false;
-  const L = ex.levels[lv];
-  const feels = Object.keys(state.days).sort().reverse()
-    .map(k=>state.days[k]).filter(e=>e.s==="fatto" && e.feel && e.feel[ex.id] && e.lv && e.lv[ex.id]===lv)
-    .slice(0,2).map(e=>e.feel[ex.id]);
-  if(L.s) return holdOf(ex) >= L.s[1] && feels[0]==="facile";
-  return feels.length===2 && feels.every(f=>f==="facile");
+  const L = ex.levels[lv], ss = sessionsAt(ex,lv);
+  if(L.s){ const f = ss.find(e=>e.s==="fatto" && e.feel && e.feel[ex.id]); return holdOf(ex) >= L.s[1] && !!f && f.feel[ex.id]==="facile"; }
+  const s0 = ss[0];
+  if(s0 && s0.reps){ const a = clean(s0.reps[ex.id]); if(a.length >= Math.min(2, S().rounds) && a.every(x=>x >= L.r[1])) return true; }
+  const f = ss.filter(e=>e.s==="fatto" && e.feel && e.feel[ex.id]).slice(0,2).map(e=>e.feel[ex.id]);
+  return f.length===2 && f.every(x=>x==="facile");
+}
+/* due sessioni di fila senza arrivare al minimo → valuta di scendere */
+function readyDown(ex){
+  const lv = lvOf(ex); if(lv===0) return false;
+  const L = ex.levels[lv]; if(L.s) return false;
+  const ss = sessionsAt(ex,lv).filter(e=>e.reps && clean(e.reps[ex.id]).length).slice(0,2);
+  return ss.length===2 && ss.every(e=>Math.max(...clean(e.reps[ex.id])) < L.r[0]);
+}
+/* serie per i grafici */
+function exSeries(ex){
+  const timed = id => !!levelOf(EXERCISES.find(x=>x.id===id)).s;
+  return sortedDays().map(k=>state.days[k]).filter(e=>e.reps && clean(e.reps[ex.id]).length).slice(-20).map(e=>{
+    const a = clean(e.reps[ex.id]), lv = e.lv ? e.lv[ex.id] : 0, L = ex.levels[lv] || levelOf(ex);
+    return {v: L.s ? Math.max(...a) : a.reduce((s,x)=>s+x,0), lv};
+  });
+}
+const f1 = v => v.toFixed(1).replace(".",",");
+const sgn = (v,d=1) => (v>0?"+":v<0?"−":"±") + Math.abs(v).toFixed(d).replace(".",",");
+function sparkSvg(ex){
+  const pts = exSeries(ex), unit = levelOf(ex).s ? "s" : "rip.";
+  if(pts.length < 2) return `<p class="spark-empty">${pts.length ? "Prima sessione registrata: "+pts[0].v+" "+unit+". Il grafico parte dalla prossima." : "Il grafico parte dalla prima sessione con le ripetizioni segnate."}</p>`;
+  const W=300, H=64, P=6, vs=pts.map(p=>p.v), lo=Math.min(...vs), hi=Math.max(...vs), rng=Math.max(1,hi-lo), stp=(W-2*P)/(pts.length-1);
+  const X = i => P + i*stp, Y = v => hi===lo ? H/2 : H-P - (v-lo)/rng*(H-P-18);
+  let marks = "";
+  pts.forEach((p,i)=>{ if(i && p.lv!==pts[i-1].lv){ const x=(X(i)-stp/2).toFixed(1); marks += `<line class="lvmark" x1="${x}" x2="${x}" y1="0" y2="${H}"/><text class="lvtxt" x="${+x+3}" y="10">L${p.lv+1}</text>`; } });
+  const d = pts.map((p,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(p.v).toFixed(1)).join("");
+  const last = pts[pts.length-1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento ${ex.name}">${marks}<path class="sp-line" d="${d}"/><circle class="sp-dot" cx="${X(pts.length-1).toFixed(1)}" cy="${Y(last.v).toFixed(1)}" r="3.5"/></svg>
+    <div class="spark-cap"><span>${pts.length} sessioni</span><span>ultima ${last.v} ${unit}, record ${hi}</span></div>`;
+}
+function weekVolume(){
+  const t = today(), dow = (parse(t).getDay()+6)%7, out = [];
+  for(let w=7; w>=0; w--){
+    const ws = addDays(t, -dow - 7*w); let sum = 0;
+    for(let d=0; d<7; d++){
+      const e = state.days[addDays(ws,d)]; if(!e || !e.reps) continue;
+      EXERCISES.forEach(ex=>{ const lv = e.lv ? e.lv[ex.id] : lvOf(ex), L = ex.levels[lv] || levelOf(ex); if(!L.s) clean(e.reps[ex.id]).forEach(x=>sum+=x); });
+    }
+    out.push({ws, sum, cur: w===0});
+  }
+  return out;
+}
+function volSvg(){
+  const data = weekVolume(), W=320, H=150, top=18, bot=20, max = Math.max(1, ...data.map(d=>d.sum)), bw = W/data.length;
+  return data.map((d,i)=>{
+    const h = (H-top-bot) * d.sum/max, x = i*bw + 5, y = H-bot-h, dt = parse(d.ws);
+    return `<rect class="vb${d.cur?" cur":""}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw-10).toFixed(1)}" height="${Math.max(h, d.sum?2:0).toFixed(1)}" rx="4"/>`+
+      (d.sum ? `<text class="v" x="${(x+(bw-10)/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle">${d.sum}</text>` : "")+
+      `<text x="${(x+(bw-10)/2).toFixed(1)}" y="${H-5}" text-anchor="middle">${d.cur ? "ora" : dt.getDate()+"/"+(dt.getMonth()+1)}</text>`;
+  }).join("") + `<line class="grid" x1="0" x2="${W}" y1="${H-bot}" y2="${H-bot}"/>`;
+}
+/* corpo: media mobile 7 giorni */
+function bodyRows(f){ return Object.keys(state.body).sort().filter(k=>state.body[k][f]!=null).map(k=>({k, v:state.body[k][f]})); }
+function movAvg(rows){ return rows.map((r,i)=>{ const w = rows.filter((q,j)=>j<=i && diffDays(q.k,r.k)<=6); return w.reduce((s,q)=>s+q.v,0)/w.length; }); }
+function trendSvg(rows, ma){
+  const W=320, H=130, L=34, P=8, B=18, span = Math.max(1, diffDays(rows[0].k, rows[rows.length-1].k));
+  const all = rows.map(r=>r.v), lo = Math.min(...all), hi = Math.max(...all), pad = Math.max(.4, (hi-lo)*.12), a = lo-pad, b = hi+pad;
+  const X = k => L + diffDays(rows[0].k,k)/span*(W-L-P), Y = v => P + (b-v)/(b-a)*(H-P-B);
+  const lab = k => { const d=parse(k); return d.getDate()+"/"+(d.getMonth()+1); };
+  const dots = rows.map(r=>`<circle class="raw" cx="${X(r.k).toFixed(1)}" cy="${Y(r.v).toFixed(1)}" r="2.6"/>`).join("");
+  const line = ma.map((m,i)=>(i?"L":"M")+X(rows[i].k).toFixed(1)+" "+Y(m).toFixed(1)).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento">`+
+    `<line class="grid" x1="${L}" x2="${W-P}" y1="${Y(hi).toFixed(1)}" y2="${Y(hi).toFixed(1)}"/><line class="grid" x1="${L}" x2="${W-P}" y1="${Y(lo).toFixed(1)}" y2="${Y(lo).toFixed(1)}"/>`+
+    `<text x="${L-6}" y="${(Y(hi)+4).toFixed(1)}" text-anchor="end">${f1(hi)}</text><text x="${L-6}" y="${(Y(lo)+4).toFixed(1)}" text-anchor="end">${f1(lo)}</text>`+
+    `${dots}<path class="ma" d="${line}"/>`+
+    `<text x="${L}" y="${H-3}">${lab(rows[0].k)}</text><text x="${W-P}" y="${H-3}" text-anchor="end">${lab(rows[rows.length-1].k)}</text></svg>`;
+}
+function bodyBlock(f, unit, label){
+  const rows = bodyRows(f); if(!rows.length) return "";
+  const ma = movAvg(rows), m = ma[ma.length-1], last = rows[rows.length-1];
+  const bits = [(last.k===today() ? "Oggi " : "Ultima misura ")+f1(last.v)];
+  if(rows.length > 1) bits.push(sgn(m-ma[0])+" dall'inizio");
+  const i28 = rows.map(r=>diffDays(r.k,last.k)>=28).lastIndexOf(true);
+  if(i28 >= 0) bits.push(sgn(m-ma[i28])+" in 4 settimane");
+  return `<div class="bhead"><h3>${label}</h3><span class="num">${f1(m)} ${unit}</span></div>
+    <p class="bsub">Media 7 giorni. ${bits.join(", ")}.</p>${rows.length>1 ? trendSvg(rows, ma) : ""}`;
 }
 
 /* ---------- stats ---------- */
@@ -515,13 +673,14 @@ function render(){
   // routine
   const ol = $("routine"); ol.innerHTML = "";
   EXERCISES.forEach(ex=>{
-    const lv = lvOf(ex), L = ex.levels[lv], up = readyUp(ex);
+    const lv = lvOf(ex), L = ex.levels[lv], up = readyUp(ex), dn = !up && readyDown(ex);
     const li = document.createElement("li");
     li.innerHTML = `<div class="ex-head"><div class="ex"></div>
         <div class="steps"><button aria-label="Livello giù">−</button><button aria-label="Livello su">+</button></div>
         <div class="lvl"></div><div class="target"></div></div>
       <div class="pips" aria-hidden="true">${ex.levels.map((_,i)=>`<i class="${i<=lv?"on":""}"></i>`).join("")}</div>
-      ${up ? '<span class="badge">Pronto a salire</span>' : ""}
+      ${up ? '<span class="badge">Pronto a salire</span>' : ""}${dn ? '<span class="badge warn">Sotto il minimo due volte: valuta un livello giù</span>' : ""}
+      ${sparkSvg(ex)}
       <details class="cue"><summary>Come si fa</summary><p></p></details>`;
     li.querySelector(".ex").textContent = ex.name;
     li.querySelector(".lvl").textContent = "Livello " + (lv+1) + " · " + L.t;
@@ -535,19 +694,30 @@ function render(){
     ol.appendChild(li);
   });
 
-  // chain: 5 settimane allineate al lunedì
-  const chain = $("chain"); chain.innerHTML = "";
-  const dow = (parse(t).getDay()+6)%7;
-  const first = addDays(t, -dow-28);
-  for(let i=0;i<35;i++){
+  // calendario: ultimo anno, colonne = settimane da lunedì
+  const heat = $("heat"), hm = $("heatMonths"); heat.innerHTML = ""; hm.innerHTML = "";
+  const dow = (parse(t).getDay()+6)%7, first = addDays(t, -dow-7*52);
+  for(let w=0; w<53; w++){
+    const sp = document.createElement("span"), ws = parse(addDays(first, w*7)), we = parse(addDays(first, w*7+6));
+    if(w===0 || we.getMonth()!==ws.getMonth() || ws.getDate()===1) sp.textContent = (w===0 ? ws : we).toLocaleDateString("it-IT",{month:"short"});
+    hm.appendChild(sp);
+  }
+  for(let i=0;i<53*7;i++){
     const k = addDays(first,i), d = document.createElement("div"), e = state.days[k];
     if(diffDays(t,k) > 0) d.classList.add("future");
     else if(state.start && diffDays(state.start,k) < 0 && !(e && e.s)) d.classList.add("pre");
     if(e && e.s) d.classList.add(e.s);
     if(k===t) d.classList.add("today");
     d.title = k + (e && e.s ? " — "+e.s : "");
-    chain.appendChild(d);
+    heat.appendChild(d);
   }
+  requestAnimationFrame(()=>{ const hw=$("heatWrap"); hw.scrollLeft = hw.scrollWidth; });
+  $("vol").innerHTML = volSvg();
+  const bt = state.body[t] || {};
+  if(document.activeElement !== $("bW")) $("bW").value = bt.w ?? "";
+  if(document.activeElement !== $("bC")) $("bC").value = bt.c ?? "";
+  $("bodyW").innerHTML = bodyBlock("w","kg","Peso");
+  $("bodyC").innerHTML = bodyBlock("c","cm","Girovita");
   const st = streakInfo();
   $("streak").textContent = st.cur; $("best").textContent = st.best; $("total").textContent = st.total;
   $("pct").textContent = st.pct===null ? "–" : st.pct+"%";
@@ -559,7 +729,7 @@ function render(){
 
   // settings
   $("restEx").value = S().restEx; $("restRound").value = S().restRound;
-  $("optVoice").checked = S().voice; $("optSound").checked = S().sound; $("optWarm").checked = S().warm;
+  $("optVoice").checked = S().voice; $("optSound").checked = S().sound; $("optWarm").checked = S().warm; $("optFin").checked = S().fin;
   $("remTime").value = S().remind;
 
   $("checkin").textContent = checkinText();
@@ -571,8 +741,11 @@ function checkinText(){
   const bits = [e.s || "non ancora"]; if(e.rounds) bits.push(e.rounds+(e.rounds===1?" giro":" giri")); if(e.dur) bits.push(e.dur+" min");
   lines.push("Oggi: " + bits.join(" · "));
   if(e.feel && Object.keys(e.feel).length) lines.push("Sensazioni: " + EXERCISES.filter(x=>e.feel[x.id]).map(x=>x.short+" "+e.feel[x.id]).join(", "));
+  if(e.reps) lines.push("Ripetizioni: " + EXERCISES.filter(x=>clean(e.reps[x.id]).length).map(x=>x.short+" "+clean(e.reps[x.id]).join("/")+(levelOf(x).s?"s":"")).join(" · ") + (e.fin ? " · finisher "+e.fin+"/"+FIN_MINS : ""));
   lines.push("Livelli: " + EXERCISES.map(x=>{ const h=holdOf(x); return x.short+" "+(lvOf(x)+1)+(h?" ("+h+"s)":""); }).join(" · "));
   lines.push(`Catena ${st.cur} · record ${st.best} · fatti ${st.total}` + (st.pct===null?"":` · ultime 4 sett. ${st.pct}%`));
+  const bw = bodyRows("w"), bc = bodyRows("c");
+  if(bw.length || bc.length){ const b=[]; if(bw.length){ const m=movAvg(bw); b.push("peso media "+f1(m[m.length-1])+" kg"); } if(bc.length){ const m=movAvg(bc); b.push("girovita media "+f1(m[m.length-1])+" cm"); } lines.push("Corpo: "+b.join(" · ")); }
   lines.push("Cosa ha ostacolato / note: " + (e.note || ""));
   return lines.join("\n");
 }
@@ -616,15 +789,22 @@ function buildSteps(mode){
       if(!last) steps.push({k:"rest", r, R, i, secs: i===EXERCISES.length-1 ? S().restRound : (mode==="minimo" ? 10 : S().restEx)});
     });
   }
+  if(mode!=="minimo" && S().fin){
+    const g = EXERCISES.find(e=>e.id==="gambe"), p = EXERCISES.find(e=>e.id==="spinta");
+    steps.push({k:"rest", fin:true, secs:S().restRound});
+    for(let n=1;n<=FIN_MINS;n++) steps.push({k:"fin", n, ex: n%2 ? g : p, secs:60});
+  }
   return steps;
 }
-const run = {on:false, mode:null, steps:[], i:0, endAt:0, left:0, paused:false, total:0, t0:0, timer:null, lastBeep:null, exDone:0};
+const run = {on:false, mode:null, steps:[], i:0, endAt:0, left:0, paused:false, total:0, t0:0, timer:null, lastBeep:null, exDone:0, log:{}, cur:0, finN:0};
+const finReps = ex => Math.max(4, Math.round(levelOf(ex).r[0]*.75));
+function showLog(){ $("lgVal").textContent = run.cur; $("lgDown").disabled = run.cur<=0; }
 const C = 2*Math.PI*54;
 $("ringVal").style.strokeDasharray = C;
 
 function startRun(mode){
   ensureStart(); audioOn(); lockScreen();
-  Object.assign(run, {on:true, mode, steps:buildSteps(mode), i:0, paused:false, t0:Date.now(), exDone:0});
+  Object.assign(run, {on:true, mode, steps:buildSteps(mode), i:0, paused:false, t0:Date.now(), exDone:0, log:{}, cur:0, finN:0});
   $("run").hidden = false; $("sum").hidden = true; $("runLive").hidden = false; $("runActions").hidden = false; $("runNext").hidden = false;
   $("runVoice").setAttribute("aria-pressed", S().voice ? "true":"false");
   $("runExit").textContent = "Esci"; $("runExit").classList.remove("warn"); $("runTop").hidden = false; $("runBarWrap").hidden = false;
@@ -642,7 +822,8 @@ function enter(i, silent){
   run.total = (st.secs||0) + (st.lead||0);
   run.endAt = Date.now() + run.total*1000; run.left = run.total*1000;
   $("runBar").style.width = Math.round(i/run.steps.length*100) + "%";
-  $("runMeta").textContent = st.k==="ex" ? `Giro ${st.r}/${st.R} · ${st.i+1}/${EXERCISES.length}` : (st.r ? `Giro ${st.r}/${st.R}` : "");
+  $("runMeta").textContent = st.k==="ex" ? `Giro ${st.r}/${st.R} · ${st.i+1}/${EXERCISES.length}` : st.k==="fin" ? `Finisher ${st.n}/${FIN_MINS}` : (st.r ? `Giro ${st.r}/${st.R}` : "");
+  $("logRow").hidden = true;
   $("runPlus").hidden = !(st.k==="rest" || st.k==="warm");
   $("runBack").disabled = i===0;
   const ring = $("ring"); ring.className = "ring" + (st.k==="rest" ? " rest" : "");
@@ -657,6 +838,16 @@ function enter(i, silent){
     set("Riscaldamento", WARM.title, "", "secondi", WARM.cue);
     $("runMain").textContent = "Salta";
     if(!silent) say("Risveglio. Un minuto.");
+  } else if(st.k==="rest" && st.fin){
+    set("Circuito finito", "Respira", "", "secondi", `Poi: finisher, ${FIN_MINS} minuti. A ogni minuto fai le ripetizioni e riposi fino allo scadere.`);
+    $("runMain").textContent = "Vai";
+    if(!silent) say("Circuito finito. Ora il finisher, quattro minuti.");
+  } else if(st.k==="fin"){
+    const L = levelOf(st.ex), n = finReps(st.ex);
+    set(`Minuto ${st.n} di ${FIN_MINS}`, n + " · " + L.t, "", "secondi", "Fai le ripetizioni, poi riposa fino allo scadere del minuto." + (L.side ? " Ripetizioni per lato." : ""));
+    $("runNext").textContent = "";
+    $("runMain").textContent = "Avanti";
+    if(!silent) say(L.t + ". " + n + (L.side ? " per lato." : "."));
   } else if(st.k==="rest"){
     const n = nextEx(i);
     set(st.i===EXERCISES.length-1 ? "Fine giro" : "Pausa", "Respira", "", "secondi", n ? "Poi: " + stepExName(n) + " · " + targetFor(n) : "");
@@ -676,6 +867,10 @@ function enter(i, silent){
       $("runUnit").textContent = "ripetizioni" + (L.side ? " per lato" : "");
       $("ringVal").style.strokeDashoffset = 0;
       $("runMain").textContent = "Fatto";
+      const prevR = run.log[st.ex.id] && run.log[st.ex.id][st.r-2], lastR = lastReps(st.ex, lvOf(st.ex));
+      run.cur = prevR ?? (lastR && lastR[st.r-1] != null ? lastR[st.r-1] : (run.mode==="minimo" ? L.r[0] : L.r[0]));
+      $("lgUnit").textContent = "fatte" + (L.side ? " per lato" : "");
+      $("logRow").hidden = false; showLog();
       if(!silent) say(st.ex.name + ". " + L.t + ". " + (run.mode==="minimo" ? L.r[0] : "da " + L.r[0] + " a " + L.r[1]) + (L.side ? " per lato." : "."));
     }
   }
@@ -710,9 +905,13 @@ function tick(){
   }
   if(!run.paused && left<=0){ beep(1320,.35,.3); advance(); }
 }
-function advance(){
+function advance(skip){
   const st = run.steps[run.i];
-  if(st.k==="ex") run.exDone = Math.max(run.exDone, countEx(run.i+1));
+  if(st.k==="ex"){
+    run.exDone = Math.max(run.exDone, countEx(run.i+1));
+    if(!skip){ const a = run.log[st.ex.id] || (run.log[st.ex.id] = []); a[st.r-1] = st.secs ? st.secs : run.cur; }
+  }
+  if(st.k==="fin" && !skip) run.finN = Math.max(run.finN, st.n);
   if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
   if(run.i+1 >= run.steps.length) return finish(run.mode);
   enter(run.i+1);
@@ -729,7 +928,9 @@ $("runMain").addEventListener("click", ()=>{
   }
   advance();
 });
-$("runSkip").addEventListener("click", ()=>advance());
+$("runSkip").addEventListener("click", ()=>advance(true));
+$("lgDown").addEventListener("click", ()=>{ run.cur = Math.max(0, run.cur-1); showLog(); });
+$("lgUp").addEventListener("click", ()=>{ run.cur = Math.min(199, run.cur+1); showLog(); });
 $("runBack").addEventListener("click", ()=>{
   let j = run.i-1; while(j>0 && run.steps[j].k==="rest") j--;
   enter(Math.max(0,j));
@@ -745,7 +946,8 @@ $("runExit").addEventListener("click", e=>{
   if(!exitArm){ b.textContent="Sicuro?"; b.classList.add("warn"); exitArm = setTimeout(()=>{ exitArm=null; b.textContent="Esci"; b.classList.remove("warn"); }, 3000); return; }
   clearTimeout(exitArm); exitArm=null; b.textContent="Esci"; b.classList.remove("warn");
   // un giro completo conta come minimo
-  if(run.exDone >= EXERCISES.length) finish("minimo"); else closeRun();
+  if(run.exDone >= countEx(run.steps.length) && run.mode==="fatto") finish("fatto");
+  else if(run.exDone >= EXERCISES.length) finish("minimo"); else closeRun();
 });
 function closeRun(){
   run.on = false; clearInterval(run.timer); unlockScreen();
@@ -766,12 +968,15 @@ function finish(mode){
   $("runLive").hidden = true; $("runActions").hidden = true; $("runNext").hidden = true; $("runMeta").textContent = "";
   $("sum").hidden = false; $("runTop").hidden = true; $("runBarWrap").hidden = true;
   $("sumTitle").textContent = mode==="fatto" ? "Fatto." : "Minimo fatto.";
-  $("sumLead").textContent = sumRounds + (sumRounds===1?" giro":" giri") + " · " + sumDur + " min" + (mode==="minimo" ? " · Conta." : "");
+  let totR = 0; EXERCISES.forEach(ex=>{ if(!levelOf(ex).s) clean(run.log[ex.id]).forEach(x=>totR+=x); });
+  $("sumLead").textContent = sumRounds + (sumRounds===1?" giro":" giri") + " · " + sumDur + " min" + (totR ? " · " + totR + " ripetizioni" : "") + (run.finN ? " · finisher " + run.finN + "/" + FIN_MINS : "") + (mode==="minimo" ? " · Conta." : "");
   const list = $("feelList"); list.innerHTML = "";
   EXERCISES.forEach(ex=>{
     const div = document.createElement("div"); div.className = "feel";
     div.innerHTML = `<div class="ex"></div><div class="choices">${FEELS.map(([v,l])=>`<button data-v="${v}" aria-pressed="false">${l}</button>`).join("")}</div>`;
-    div.querySelector(".ex").textContent = ex.name + " · " + levelOf(ex).t;
+    const lg = clean(run.log[ex.id]);
+    div.querySelector(".ex").innerHTML = ""; div.querySelector(".ex").append(ex.name + " · " + levelOf(ex).t + " ");
+    if(lg.length){ const sp=document.createElement("span"); sp.className="reps"; sp.textContent = lg.join(" / ") + (levelOf(ex).s ? " s" : ""); div.querySelector(".ex").append(sp); }
     div.querySelectorAll("button").forEach(b=>b.onclick=()=>{
       sumFeel[ex.id] = sumFeel[ex.id]===b.dataset.v ? undefined : b.dataset.v;
       div.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", sumFeel[ex.id]===x.dataset.v?"true":"false"));
@@ -788,7 +993,7 @@ $("sumSave").addEventListener("click", ()=>{
   const lv = {}; EXERCISES.forEach(ex=>lv[ex.id]=lvOf(ex));
   const keepPrev = prev.s && RANK[prev.s] > RANK[sumMode];
   state.days[t] = keepPrev ? Object.assign(prev, {note:$("sumNote").value || prev.note})
-    : {s:sumMode, note:$("sumNote").value, feel, lv, rounds:sumRounds, dur:sumDur};
+    : {s:sumMode, note:$("sumNote").value, feel, lv, rounds:sumRounds, dur:sumDur, reps:JSON.parse(JSON.stringify(run.log)), fin:run.finN};
   // tenute a tempo: facile +5 s, duro −5 s (solo sessione piena)
   if(sumMode==="fatto") EXERCISES.forEach(ex=>{
     const L = levelOf(ex); if(!L.s || !feel[ex.id]) return;
@@ -797,8 +1002,8 @@ $("sumSave").addEventListener("click", ()=>{
     if(feel[ex.id]==="duro") state.hold[ex.id] = Math.max(L.s[0], h-5);
   });
   save(); closeRun();
-  const st = streakInfo(), ups = EXERCISES.filter(readyUp).map(e=>e.name);
-  toast(ups.length ? "Pronto a salire: " + ups.join(", ") : "Salvato. Catena: " + st.cur);
+  const st = streakInfo(), ups = EXERCISES.filter(readyUp).map(e=>e.name), dns = EXERCISES.filter(readyDown).map(e=>e.name);
+  toast(ups.length ? "Pronto a salire: " + ups.join(", ") : dns.length ? "Valuta un livello giù: " + dns.join(", ") : "Salvato. Catena: " + st.cur);
   if(MILESTONES.includes(st.total)) setTimeout(()=>toast("Traguardo: " + st.total + " giorni fatti"), 2400);
 });
 
@@ -828,6 +1033,18 @@ $("restRound").addEventListener("change", e=>{ S().restRound = +e.target.value; 
 $("optVoice").addEventListener("change", e=>{ S().voice = e.target.checked; save(); });
 $("optSound").addEventListener("change", e=>{ S().sound = e.target.checked; save(); });
 $("optWarm").addEventListener("change", e=>{ S().warm = e.target.checked; save(); render(); });
+$("optFin").addEventListener("change", e=>{ S().fin = e.target.checked; save(); render(); });
+$("bSave").addEventListener("click", ()=>{
+  const num = id => { const v = parseFloat(String($(id).value).replace(",",".")); return isFinite(v) ? v : null; };
+  const w = num("bW"), c = num("bC");
+  if(w!==null && (w<30 || w>300)) return toast("Peso fuori scala");
+  if(c!==null && (c<40 || c>200)) return toast("Girovita fuori scala");
+  const t = today();
+  if(w===null && c===null){ delete state.body[t]; }
+  else { state.body[t] = {}; if(w!==null) state.body[t].w = Math.round(w*10)/10; if(c!==null) state.body[t].c = Math.round(c*2)/2; }
+  document.activeElement && document.activeElement.blur();
+  save(); render(); toast("Salvato");
+});
 $("remTime").addEventListener("change", e=>{ S().remind = e.target.value || "06:05"; save(); });
 
 /* promemoria .ics */
@@ -861,7 +1078,7 @@ $("bkLoad").addEventListener("click", ()=>{
   try{
     const d = JSON.parse(raw);
     if(!d || typeof d.days !== "object") throw 0;
-    state = {start:d.start||null, days:d.days||{}, levels:d.levels||{}, hold:d.hold||{}, settings:Object.assign({...DEFAULT_SETTINGS}, d.settings||{})};
+    state = fromData(d);
     save(); render(); toast("Backup ripristinato");
   }catch(e){ toast("Backup non valido"); }
 });
